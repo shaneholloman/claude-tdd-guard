@@ -1,10 +1,12 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ESLint } from './ESLint'
 import { join } from 'path'
-import { LintIssue, LintResult } from '../../contracts/schemas/lintSchemas'
+import { LintResult } from '../../contracts/schemas/lintSchemas'
+import { hasRules, issuesFromFile } from '../../../test/utils/assertions'
 
 describe('ESLint', () => {
   let linter: ESLint
+
   beforeEach(() => {
     linter = new ESLint()
   })
@@ -19,6 +21,7 @@ describe('ESLint', () => {
     expect(result).toBeDefined()
     expect(result.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   })
+
   test('returns the file paths that were passed in', async () => {
     const filePaths = ['src/file1.ts', 'src/file2.ts']
     const result = await linter.lint(filePaths)
@@ -152,19 +155,7 @@ describe('ESLint', () => {
   })
 })
 
-// Test helper functions
-function hasRule(issues: LintIssue[], rule: string): boolean {
-  return issues.some((issue) => issue.rule === rule)
-}
-
-function hasRules(issues: LintIssue[], rules: string[]): boolean[] {
-  return rules.map((rule) => hasRule(issues, rule))
-}
-
-function issuesFromFile(issues: LintIssue[], filename: string): LintIssue[] {
-  return issues.filter((issue) => issue.file.includes(filename))
-}
-
+// Test helper function
 async function testShellOption(platform: string, expectedShell: boolean) {
   // Set platform to test platform-specific behavior
   Object.defineProperty(process, 'platform', { value: platform })
