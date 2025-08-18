@@ -102,8 +102,8 @@ export class Config {
   }
 
   private getLinterType(options?: ConfigOptions): string | undefined {
-    if (options?.linterType) {
-      return options.linterType.toLowerCase()
+    if (options && 'linterType' in options) {
+      return options.linterType?.toLowerCase()
     }
     const envValue = process.env.LINTER_TYPE?.toLowerCase()
     return envValue && envValue.trim() !== '' ? envValue : undefined
