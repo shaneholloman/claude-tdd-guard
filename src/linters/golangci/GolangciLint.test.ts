@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest'
-import { GolangciLint } from './GolangciLint'
+import { GolangciLint, buildArgs } from './GolangciLint'
 import { join } from 'path'
 import { hasRules, issuesFromFile } from '../../../test/utils/assertions'
 
@@ -106,6 +106,34 @@ describe('GolangciLint', () => {
         'file-with-issues.go'
       )
       expect(problemFileIssues.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('directory-based linting', () => {
+    test('should build args for directory-based linting with current directory', () => {
+      const file1 = '/path/to/project/src/main.go'
+      const file2 = '/path/to/project/src/helper.go'
+      const file3 = '/path/to/project/pkg/utils.go'
+
+      const args = buildArgs([file1, file2, file3], configPath)
+
+      // Should contain basic golangci-lint arguments
+      expect(args).toContain('run')
+      expect(args).toContain('--output.json.path=stdout')
+      expect(args).toContain('--config')
+      expect(args).toContain(configPath)
+
+      // Should use current directory (.) instead of individual directories
+      expect(args).toContain('.')
+
+      // Should NOT contain individual file paths
+      expect(args).not.toContain(file1)
+      expect(args).not.toContain(file2)
+      expect(args).not.toContain(file3)
+
+      // Should NOT contain individual directories (since we use cwd + .)
+      expect(args).not.toContain('/path/to/project/src')
+      expect(args).not.toContain('/path/to/project/pkg')
     })
   })
 
