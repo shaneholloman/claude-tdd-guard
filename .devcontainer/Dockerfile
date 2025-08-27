@@ -100,6 +100,9 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/home/node/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
+# Install golangci-lint
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/go/bin latest
+
 # Install Rust
 ENV RUSTUP_HOME=/opt/rust/rustup
 ENV CARGO_HOME=/opt/rust/cargo
