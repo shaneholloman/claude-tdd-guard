@@ -3,6 +3,7 @@ package parser
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -223,7 +224,8 @@ func (p *Parser) GetTestOutput(pkg, test string) string {
 		for _, msg := range p.buildFailures {
 			// The build failure message contains the error details
 			if msg != "" {
-				return strings.TrimSpace(msg)
+				trimmed := strings.TrimSpace(msg)
+				return truncateTestOutput(trimmed)
 			}
 		}
 	}
@@ -235,11 +237,106 @@ func (p *Parser) GetTestOutput(pkg, test string) string {
 	if !exists {
 		return ""
 	}
-	// Trim trailing whitespace/newlines
-	return strings.TrimRight(output, "\n")
+	// Trim trailing whitespace/newlines and truncate if necessary
+	trimmed := strings.TrimRight(output, "\n")
+	return truncateTestOutput(trimmed)
 }
 
 // GetBuildFailure returns captured build failure output for a package
 func (p *Parser) GetBuildFailure(importPath string) string {
 	return p.buildFailures[importPath]
+}
+
+func truncateTestOutput(output string) string {
+	// Handle race conditions specially - preserve file location for AI parsing
+	if strings.Contains(output, "race detected during execution of test") {
+		raceCount := strings.Count(output, "race detected during execution of test")
+		
+		// For multiple races, use summary format
+		if raceCount > 1 {
+			return fmt.Sprintf("Multiple race conditions detected - race detected during execution of test (%d races found)", raceCount)
+		}
+		
+		// For single race, try to preserve file location
+		lines := strings.Split(output, "\n")
+		// Try to find first .go:line line mentioning race for AI parsing
+		for _, line := range lines {
+			if strings.Contains(line, "race detected during execution of test") && strings.Contains(line, ".go:") {
+				// Return the full line with file location preserved
+				return strings.TrimSpace(line)
+			}
+		}
+		// Fallback: look for any .go:line then add race context
+		for _, line := range lines {
+			if strings.Contains(line, ".go:") && strings.Contains(line, ":") {
+				trimmed := strings.TrimSpace(line)
+				if !strings.Contains(trimmed, "race detected") {
+					return trimmed + " [race detected]"
+				}
+				return trimmed
+			}
+		}
+		// Last resort - generic message
+		return "race detected during execution of test"
+	}
+	
+	// For short output, return unchanged
+	const maxLength = 500
+	if len(output) <= maxLength {
+		return output
+	}
+	
+	// For long output, truncate and indicate
+	lines := strings.Split(output, "\n")
+	if len(lines) <= 5 {
+		// Truncate by character count
+		return output[:maxLength-50] + fmt.Sprintf(" [truncated %d chars]", len(output)-maxLength+50)
+	}
+	
+	// Take first 5 lines but prioritize lines with file location info for AI parsing
+	selectedLines := selectLinesForTruncation(lines, 5)
+	remainingLines := len(lines) - len(selectedLines)
+	return fmt.Sprintf("%s\n[truncated %d more lines]", strings.Join(selectedLines, "\n"), remainingLines)
+}
+
+// selectLinesForTruncation selects lines for truncation, prioritizing file location info for AI parsing
+func selectLinesForTruncation(lines []string, maxLines int) []string {
+	if len(lines) <= maxLines {
+		return lines
+	}
+	
+	// Find lines with file location info (file.go:line patterns)
+	fileLocationLines := make([]int, 0)
+	for i, line := range lines {
+		if containsGoFileLocation(line) {
+			fileLocationLines = append(fileLocationLines, i)
+		}
+	}
+	
+	selected := make([]string, 0, maxLines)
+	used := make(map[int]bool)
+	
+	// First, include file location lines (up to maxLines)
+	for _, lineIdx := range fileLocationLines {
+		if len(selected) >= maxLines {
+			break
+		}
+		selected = append(selected, lines[lineIdx])
+		used[lineIdx] = true
+	}
+	
+	// Then fill remaining slots with lines from the beginning
+	for i := 0; i < len(lines) && len(selected) < maxLines; i++ {
+		if !used[i] {
+			selected = append(selected, lines[i])
+			used[i] = true
+		}
+	}
+	
+	return selected
+}
+
+// containsGoFileLocation checks if a line contains Go file location info (file.go:line:col or file.go:line)
+func containsGoFileLocation(line string) bool {
+	return strings.Contains(line, ".go:") && (strings.Count(line, ":") >= 2)
 }
