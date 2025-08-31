@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from 'vitest'
+import { describe, test, expect, beforeEach, afterEach } from 'vitest'
 import { GolangciLint, buildArgs } from './GolangciLint'
 import { join } from 'path'
 import { hasRules, issuesFromFile } from '../../../test/utils/assertions'
@@ -37,6 +37,17 @@ describe('GolangciLint', () => {
   })
 
   describe('linting behavior', () => {
+    let originalCwd: string
+
+    beforeEach(() => {
+      originalCwd = process.cwd()
+      process.chdir(withIssuesDir)
+    })
+
+    afterEach(() => {
+      process.chdir(originalCwd)
+    })
+
     test('detects issues in file with lint problems', async () => {
       const filePath = join(withIssuesDir, 'file-with-issues.go')
       const result = await linter.lint([filePath], configPath)
@@ -111,11 +122,7 @@ describe('GolangciLint', () => {
 
   describe('directory-based linting', () => {
     test('should build args for directory-based linting with current directory', () => {
-      const file1 = '/path/to/project/src/main.go'
-      const file2 = '/path/to/project/src/helper.go'
-      const file3 = '/path/to/project/pkg/utils.go'
-
-      const args = buildArgs([file1, file2, file3], configPath)
+      const args = buildArgs([], configPath)
 
       // Should contain basic golangci-lint arguments
       expect(args).toContain('run')
@@ -123,17 +130,9 @@ describe('GolangciLint', () => {
       expect(args).toContain('--config')
       expect(args).toContain(configPath)
 
-      // Should use current directory (.) instead of individual directories
-      expect(args).toContain('.')
-
-      // Should NOT contain individual file paths
-      expect(args).not.toContain(file1)
-      expect(args).not.toContain(file2)
-      expect(args).not.toContain(file3)
-
-      // Should NOT contain individual directories (since we use cwd + .)
-      expect(args).not.toContain('/path/to/project/src')
-      expect(args).not.toContain('/path/to/project/pkg')
+      // With empty filePaths, should have no directories in args
+      expect(args).not.toContain('.')
+      expect(args).toContain('--path-mode=abs')
     })
   })
 

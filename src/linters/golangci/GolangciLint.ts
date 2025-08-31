@@ -6,7 +6,7 @@ import {
 } from '../../contracts/schemas/lintSchemas'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { dirname, resolve, basename, isAbsolute } from 'path'
+import { dirname } from 'path'
 import { Linter } from '../Linter'
 
 const execFileAsync = promisify(execFile)
@@ -17,16 +17,11 @@ export class GolangciLint implements Linter {
     const args = buildArgs(filePaths, configPath)
 
     try {
-      // Extract unique directories from file paths to determine working directory
-      const directories = [...new Set(filePaths.map((file) => dirname(file)))]
-      const workingDir = directories.length > 0 ? directories[0] : process.cwd()
-
-      await execFileAsync('golangci-lint', args, { cwd: workingDir })
+      // golangci-lint exits with non-zero code when issues are found
+      await execFileAsync('golangci-lint', args)
       return createLintData(timestamp, filePaths, [])
     } catch (error) {
-      if (!isExecError(error)) {
-        return createLintData(timestamp, filePaths, [])
-      }
+      if (!isExecError(error)) throw error
 
       const results = parseResults(error.stdout)
       return createLintData(timestamp, filePaths, results)
@@ -35,17 +30,21 @@ export class GolangciLint implements Linter {
 }
 
 // Helper functions
-export const buildArgs = (_files: string[], configPath?: string): string[] => {
-  const args = ['run', '--output.json.path=stdout']
+export const buildArgs = (
+  filePaths: string[],
+  configPath?: string
+): string[] => {
+  const args = ['run', '--output.json.path=stdout', '--path-mode=abs']
 
-  if (configPath !== undefined) {
+  if (configPath) {
     args.push('--config', configPath)
   } else {
     args.push('--no-config')
   }
 
-  // When using directory-based linting with cwd, use current directory
-  args.push('.')
+  // Convert file paths to unique directories since golangci-lint runs on directories
+  const directories = [...new Set(filePaths.map((file) => dirname(file)))]
+  args.push(...directories)
 
   return args
 }
@@ -78,8 +77,7 @@ const createLintData = (
   files: string[],
   results: GolangciLintIssue[]
 ): LintResult => {
-  const issues = extractIssues(results, files)
-
+  const issues = results.flatMap(toIssue)
   return {
     timestamp,
     files,
@@ -89,30 +87,21 @@ const createLintData = (
   }
 }
 
-const extractIssues = (
-  results: GolangciLintIssue[],
-  requestedFiles: string[]
-): LintIssue[] => results.flatMap((issue) => parseIssue(issue, requestedFiles))
-
-const parseIssue = (
-  issue: GolangciLintIssue,
-  requestedFiles: string[]
-): LintIssue[] => {
-  // Check if this is a multi-line issue (directory-based output)
+const toIssue = (issue: GolangciLintIssue): LintIssue[] => {
+  // Check if this contains multiple issues in the Text field
   if (issue.Text.includes('\n') && issue.Text.includes('.go:')) {
     // Parse multi-line text to extract individual issues
     const lines = issue.Text.split('\n').slice(1) // Skip module name line
     return lines
       .filter((line) => line.includes('.go:'))
-      .map((line) => parseIssueLine(line, issue.FromLinter, requestedFiles))
+      .map((line) => parseIssueLine(line, issue.FromLinter))
       .filter((parsedIssue): parsedIssue is LintIssue => parsedIssue !== null)
   }
 
-  // Single issue - use original logic with path resolution
-  const resolvedPath = resolveFilePath(issue.Pos.Filename, requestedFiles)
+  // Single issue
   return [
     {
-      file: resolvedPath,
+      file: issue.Pos.Filename,
       line: issue.Pos.Line,
       column: issue.Pos.Column,
       severity: 'error' as const,
@@ -122,25 +111,17 @@ const parseIssue = (
   ]
 }
 
-const parseIssueLine = (
-  line: string,
-  linter: string,
-  requestedFiles: string[]
-): LintIssue | null => {
+const parseIssueLine = (line: string, linter: string): LintIssue | null => {
   // Parse format: "./file-with-issues.go:8:2: declared and not used: message"
-  // Split by : to avoid regex backtracking issues
-  const colonIndex = line.indexOf(':')
-  if (colonIndex === -1 || !line.includes('.go:')) return null
-
   const parts = line.split(':')
   const MIN_PARTS = 4 // filename:line:column:message
-  const MESSAGE_START_INDEX = 3
 
-  if (parts.length < MIN_PARTS) return null
+  if (parts.length < MIN_PARTS || !line.includes('.go:')) return null
 
   const filename = parts[0]
   const lineStr = parts[1]
   const columnStr = parts[2]
+  const MESSAGE_START_INDEX = 3
   const message = parts.slice(MESSAGE_START_INDEX).join(':').trim()
 
   if (
@@ -151,49 +132,14 @@ const parseIssueLine = (
     return null
   }
 
-  const resolvedPath = resolveFilePath(filename, requestedFiles)
-
   return {
-    file: resolvedPath,
+    file: filename,
     line: parseInt(lineStr, 10),
     column: parseInt(columnStr, 10),
     severity: 'error' as const,
     message,
     rule: linter,
   }
-}
-
-const resolveFilePath = (
-  filename: string,
-  requestedFiles: string[]
-): string => {
-  // If already absolute, return as-is
-  if (isAbsolute(filename)) {
-    return filename
-  }
-
-  // Remove leading './' if present
-  const cleanFilename = filename.startsWith('./') ? filename.slice(2) : filename
-
-  // Try to match to one of the requested files by basename
-  const matchingFile = requestedFiles.find((file) => {
-    const fileBasename = basename(file)
-    const targetBasename = basename(cleanFilename)
-    return fileBasename === targetBasename
-  })
-
-  if (matchingFile) {
-    return matchingFile
-  }
-
-  // Fallback: resolve relative to first file's directory
-  if (requestedFiles.length > 0) {
-    const firstFileDir = dirname(requestedFiles[0])
-    return resolve(firstFileDir, cleanFilename)
-  }
-
-  // Last resort: return as-is
-  return filename
 }
 
 const countBySeverity = (

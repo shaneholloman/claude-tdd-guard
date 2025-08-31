@@ -5,6 +5,9 @@ import {
   LintDataSchema,
   ESLintMessageSchema,
   ESLintResultSchema,
+  GolangciLintPositionSchema,
+  GolangciLintIssueSchema,
+  GolangciLintResultSchema,
 } from './lintSchemas'
 import { testData } from '@testUtils'
 
@@ -226,6 +229,190 @@ describe('ESLintResultSchema', () => {
     },
   ])('$description', ({ result, expectedSuccess }) => {
     const parseResult = ESLintResultSchema.safeParse(result)
+    expect(parseResult.success).toBe(expectedSuccess)
+  })
+})
+
+describe('GolangciLintPositionSchema', () => {
+  test.each([
+    {
+      description: 'valid position with all fields',
+      position: {
+        Filename: '/path/to/file.go',
+        Line: 10,
+        Column: 5,
+      },
+      expectedSuccess: true,
+    },
+    {
+      description: 'without required Filename',
+      position: {
+        Line: 10,
+        Column: 5,
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required Line',
+      position: {
+        Filename: '/path/to/file.go',
+        Column: 5,
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required Column',
+      position: {
+        Filename: '/path/to/file.go',
+        Line: 10,
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'with invalid Line type',
+      position: {
+        Filename: '/path/to/file.go',
+        Line: '10',
+        Column: 5,
+      },
+      expectedSuccess: false,
+    },
+  ])('$description', ({ position, expectedSuccess }) => {
+    const result = GolangciLintPositionSchema.safeParse(position)
+    expect(result.success).toBe(expectedSuccess)
+  })
+})
+
+describe('GolangciLintIssueSchema', () => {
+  test.each([
+    {
+      description: 'valid issue with all fields',
+      issue: {
+        FromLinter: 'typecheck',
+        Text: 'undefined: variable',
+        Severity: 'error',
+        Pos: {
+          Filename: '/path/to/file.go',
+          Line: 10,
+          Column: 5,
+        },
+      },
+      expectedSuccess: true,
+    },
+    {
+      description: 'without required FromLinter',
+      issue: {
+        Text: 'undefined: variable',
+        Severity: 'error',
+        Pos: {
+          Filename: '/path/to/file.go',
+          Line: 10,
+          Column: 5,
+        },
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required Text',
+      issue: {
+        FromLinter: 'typecheck',
+        Severity: 'error',
+        Pos: {
+          Filename: '/path/to/file.go',
+          Line: 10,
+          Column: 5,
+        },
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required Pos',
+      issue: {
+        FromLinter: 'typecheck',
+        Text: 'undefined: variable',
+        Severity: 'error',
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'with invalid Pos structure',
+      issue: {
+        FromLinter: 'typecheck',
+        Text: 'undefined: variable',
+        Severity: 'error',
+        Pos: {
+          Filename: '/path/to/file.go',
+          Line: 'invalid',
+          Column: 5,
+        },
+      },
+      expectedSuccess: false,
+    },
+  ])('$description', ({ issue, expectedSuccess }) => {
+    const result = GolangciLintIssueSchema.safeParse(issue)
+    expect(result.success).toBe(expectedSuccess)
+  })
+})
+
+describe('GolangciLintResultSchema', () => {
+  test.each([
+    {
+      description: 'valid result with Issues array',
+      result: {
+        Issues: [
+          {
+            FromLinter: 'typecheck',
+            Text: 'undefined: variable',
+            Severity: 'error',
+            Pos: {
+              Filename: '/path/to/file.go',
+              Line: 10,
+              Column: 5,
+            },
+          },
+        ],
+      },
+      expectedSuccess: true,
+    },
+    {
+      description: 'valid result with empty Issues array',
+      result: {
+        Issues: [],
+      },
+      expectedSuccess: true,
+    },
+    {
+      description: 'valid result without Issues (undefined)',
+      result: {},
+      expectedSuccess: true,
+    },
+    {
+      description: 'invalid result with malformed issue in Issues array',
+      result: {
+        Issues: [
+          {
+            FromLinter: 'typecheck',
+            // Missing required Text field
+            Severity: 'error',
+            Pos: {
+              Filename: '/path/to/file.go',
+              Line: 10,
+              Column: 5,
+            },
+          },
+        ],
+      },
+      expectedSuccess: false,
+    },
+    {
+      description: 'invalid result with non-array Issues',
+      result: {
+        Issues: 'not-an-array',
+      },
+      expectedSuccess: false,
+    },
+  ])('$description', ({ result, expectedSuccess }) => {
+    const parseResult = GolangciLintResultSchema.safeParse(result)
     expect(parseResult.success).toBe(expectedSuccess)
   })
 })
