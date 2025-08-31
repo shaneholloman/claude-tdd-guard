@@ -34,7 +34,7 @@ export default defineConfig({
             '**/node_modules/**',
             '**/dist/**',
             '**/artifacts/**',
-            '**/test/integration/validator.scenarios.test.ts', // Extensive test suite - run separately for faster feedback
+            '**/test/integration/**', // Integration tests require Claude CLI binary
           ],
           pool: 'threads', // Use threads for all other tests
         },
