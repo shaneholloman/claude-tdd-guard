@@ -35,6 +35,7 @@ export default defineConfig({
             '**/dist/**',
             '**/artifacts/**',
             '**/test/integration/**', // Integration tests require Claude CLI binary
+            '**/reporters/test/**', // Reporter integration tests - run separately
           ],
           pool: 'threads', // Use threads for all other tests
         },
