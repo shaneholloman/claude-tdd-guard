@@ -1,4 +1,5 @@
 import { Context, ProcessedLintData } from '../../contracts/types/Context'
+import { Config } from '../../config/Config'
 import {
   isEditOperation,
   isMultiEditOperation,
@@ -12,8 +13,8 @@ import {
 import { TestResultsProcessor } from '../../processors'
 import { formatLintDataForContext } from '../../processors/lintProcessor'
 
-// Import core prompts (always included)
-import { ROLE } from '../prompts/role'
+// Import core prompts
+import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 import { RULES } from '../prompts/rules'
 import { FILE_TYPES } from '../prompts/file-types'
 import { RESPONSE } from '../prompts/response'
@@ -26,13 +27,16 @@ import { TODOS } from '../prompts/tools/todos'
 import { TEST_OUTPUT } from '../prompts/tools/test-output'
 import { LINT_RESULTS } from '../prompts/tools/lint-results'
 
-export function generateDynamicContext(context: Context): string {
+export function generateDynamicContext(
+  context: Context,
+  config?: Config
+): string {
   const operation: ToolOperation = JSON.parse(context.modifications)
+  const effectiveConfig = config ?? new Config()
 
-  // Build prompt in correct order
   const sections: string[] = [
-    // 1. Core sections (always included)
-    ROLE,
+    // 1. Core sections (system prompt only for CLI)
+    getSystemPrompt(effectiveConfig),
     context.instructions ?? RULES,
     FILE_TYPES,
 
@@ -143,4 +147,9 @@ function formatSection(title: string, content: string): string {
 
 function codeBlock(content: string): string {
   return `\`\`\`\n${content}\n\`\`\`\n`
+}
+
+function getSystemPrompt(config: Config): string {
+  // Only the CLI client requires the system prompt in the query
+  return config.validationClient === 'cli' ? SYSTEM_PROMPT : ''
 }

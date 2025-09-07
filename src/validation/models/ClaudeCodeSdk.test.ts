@@ -1,8 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { ClaudeCodeSdk, SYSTEM_PROMPT } from './ClaudeCodeSdk'
+import { ClaudeCodeSdk } from './ClaudeCodeSdk'
 import { Config } from '../../config/Config'
 import { IModelClient } from '../../contracts/types/ModelClient'
 import { query, type SDKResultMessage } from '@anthropic-ai/claude-code'
+import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 
 describe('ClaudeCodeSdk', () => {
   describe('constructor', () => {
@@ -145,5 +146,5 @@ function createSDKResultMessage(
     subtype: 'success',
     result: 'default result',
     ...overrides,
-  }
+  } as SDKResultMessage
 }

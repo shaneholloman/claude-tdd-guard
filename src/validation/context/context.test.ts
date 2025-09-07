@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach } from 'vitest'
 import { testData } from '@testUtils'
 import { generateDynamicContext } from './context'
 import { ToolOperation } from '../../contracts/schemas/toolSchemas'
-import { ROLE } from '../prompts/role'
+import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 import { RULES } from '../prompts/rules'
 import { FILE_TYPES } from '../prompts/file-types'
 import { RESPONSE } from '../prompts/response'
@@ -11,8 +11,22 @@ import { MULTI_EDIT } from '../prompts/operations/multi-edit'
 import { WRITE } from '../prompts/operations/write'
 import { TODOS } from '../prompts/tools/todos'
 import { TEST_OUTPUT } from '../prompts/tools/test-output'
+import { Config } from '../../config/Config'
 
 describe('generateDynamicContext', () => {
+  test('uses default Config when config parameter is omitted', () => {
+    const editOperation = testData.editOperation()
+    const context = {
+      modifications: JSON.stringify(editOperation),
+    }
+
+    // Call without config parameter
+    const result = generateDynamicContext(context)
+
+    // Should return valid result
+    expect(result).toContain('## TDD Fundamentals')
+  })
+
   describe('when Edit operation', () => {
     let editOperation: ReturnType<typeof testData.editOperation>
     let result: string
@@ -193,19 +207,41 @@ describe('generateDynamicContext', () => {
       const result = generateContextResult(editOperation)
 
       // Verify order by checking indexOf
-      const roleIndex = result.indexOf('# TDD Validation Request')
+      const systemIndex = result.indexOf('# TDD-Guard')
       const rulesIndex = result.indexOf('## TDD Fundamentals')
       const fileRulesIndex = result.indexOf('## File Type Specific Rules')
       const operationIndex = result.indexOf('## Analyzing Edit Operations')
       const changesIndex = result.indexOf('### File Path')
       const responseIndex = result.indexOf('## Your Response')
 
-      expect(roleIndex).toBeLessThan(rulesIndex)
+      expect(systemIndex).toBeLessThan(rulesIndex)
       expect(rulesIndex).toBeLessThan(fileRulesIndex)
       expect(fileRulesIndex).toBeLessThan(operationIndex)
       expect(operationIndex).toBeLessThan(changesIndex)
       expect(changesIndex).toBeLessThan(responseIndex)
     })
+  })
+
+  describe('system prompt', () => {
+    test.each([
+      ['cli', true],
+      ['sdk', false],
+      ['api', false],
+    ] as const)(
+      '%s client includes system prompt: %s',
+      (client, shouldInclude) => {
+        const config = new Config({ validationClient: client })
+        const editOperation = testData.editOperation()
+        const context = {
+          modifications: JSON.stringify(editOperation),
+        }
+
+        const result = generateDynamicContext(context, config)
+
+        const containsSystemPrompt = result.includes(SYSTEM_PROMPT)
+        expect(containsSystemPrompt).toBe(shouldInclude)
+      }
+    )
   })
 
   describe('custom instructions', () => {
@@ -322,7 +358,6 @@ function generateContextResult(
 }
 
 function expectCorePrompts(result: string) {
-  expect(result).toContain(ROLE)
   expect(result).toContain(RULES)
   expect(result).toContain(FILE_TYPES)
   expect(result).toContain(RESPONSE)

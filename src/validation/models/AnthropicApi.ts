@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { Config } from '../../config/Config'
 import { IModelClient } from '../../contracts/types/ModelClient'
+import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 
 export class AnthropicApi implements IModelClient {
   private readonly config: Config
@@ -16,6 +17,7 @@ export class AnthropicApi implements IModelClient {
   async ask(prompt: string): Promise<string> {
     const response = await this.client.messages.create({
       model: this.config.modelVersion,
+      system: SYSTEM_PROMPT,
       max_tokens: 1024,
       messages: [
         {

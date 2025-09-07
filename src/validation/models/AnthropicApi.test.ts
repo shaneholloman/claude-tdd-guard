@@ -2,6 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { AnthropicApi } from './AnthropicApi'
 import Anthropic from '@anthropic-ai/sdk'
 import { Config } from '../../config/Config'
+import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 
 vi.mock('@anthropic-ai/sdk')
 
@@ -36,6 +37,11 @@ describe('AnthropicApi', () => {
   test('uses model version from config', async () => {
     const call = await sut.askAndGetCall()
     expect(call.model).toBe(modelVersion)
+  })
+
+  test('includes system prompt in API call', async () => {
+    const call = await sut.askAndGetCall()
+    expect(call.system).toBe(SYSTEM_PROMPT)
   })
 
   test('sets max tokens to 1024', async () => {
@@ -81,6 +87,7 @@ describe('AnthropicApi', () => {
 // Test Helpers
 interface MessageCreateParams {
   model: string
+  system: string
   max_tokens: number
   messages: Array<{ role: string; content: string }>
 }
@@ -116,6 +123,7 @@ function createSut(apiKey?: string, modelVersion?: string) {
     const params = lastCall[0]
     return {
       model: params.model,
+      system: params.system,
       max_tokens: params.max_tokens,
       messages: params.messages,
     }
