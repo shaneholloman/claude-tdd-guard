@@ -15,7 +15,7 @@ export class AnthropicApi implements IModelClient {
 
   async ask(prompt: string): Promise<string> {
     const response = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: this.config.modelVersion,
       max_tokens: 1024,
       messages: [
         {

@@ -11,9 +11,11 @@ const DEFAULT_TEST_PROMPT = 'test prompt'
 describe('AnthropicApi', () => {
   let sut: Awaited<ReturnType<typeof createSut>>
   let client: AnthropicApi
+  const apiKey = 'test-api-key'
+  const modelVersion = 'claude-3-5-sonnet-20241022'
 
   beforeEach(() => {
-    sut = createSut()
+    sut = createSut(apiKey, modelVersion)
     client = sut.client
   })
 
@@ -28,15 +30,12 @@ describe('AnthropicApi', () => {
   })
 
   test('should create Anthropic client with API key from config', () => {
-    const apiKey = 'test-api-key-123'
-    const localSut = createSut(apiKey)
-
-    expect(localSut.wasCreatedWithApiKey(apiKey)).toBe(true)
+    expect(sut.wasCreatedWithApiKey(apiKey)).toBe(true)
   })
 
-  test('uses claude-sonnet-4 model', async () => {
+  test('uses model version from config', async () => {
     const call = await sut.askAndGetCall()
-    expect(call.model).toBe('claude-sonnet-4-20250514')
+    expect(call.model).toBe(modelVersion)
   })
 
   test('sets max tokens to 1024', async () => {
@@ -86,7 +85,7 @@ interface MessageCreateParams {
   messages: Array<{ role: string; content: string }>
 }
 
-function createSut(apiKey?: string) {
+function createSut(apiKey?: string, modelVersion?: string) {
   vi.clearAllMocks()
 
   const mockCreate = vi.fn().mockResolvedValue({
@@ -103,7 +102,7 @@ function createSut(apiKey?: string) {
       }) as unknown as Anthropic
   )
 
-  const config = new Config({ anthropicApiKey: apiKey })
+  const config = new Config({ anthropicApiKey: apiKey, modelVersion })
   const client = new AnthropicApi(config)
 
   const mockResponse = (text: string): void => {
