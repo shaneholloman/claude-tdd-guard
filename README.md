@@ -39,8 +39,16 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 
 ### 1. Install TDD Guard
 
+Using npm:
+
 ```bash
 npm install -g tdd-guard
+```
+
+Or using Homebrew:
+
+```bash
+brew install tdd-guard
 ```
 
 ### 2. Add Test Reporter
@@ -134,7 +142,7 @@ tdd_guard_project_root = "/Users/username/projects/my-app"
 <details>
 <summary><b>PHP (PHPUnit)</b></summary>
 
-Install the tdd-guard/phpunit reporter in your project:
+Install the [tdd-guard/phpunit](https://packagist.org/packages/tdd-guard/phpunit) reporter in your project:
 
 ```bash
 composer require --dev tdd-guard/phpunit
@@ -195,7 +203,7 @@ test:
 <details>
 <summary><b>Rust</b></summary>
 
-Install the tdd-guard-rust reporter:
+Install the [tdd-guard-rust](https://crates.io/crates/tdd-guard-rust) reporter:
 
 ```bash
 cargo install tdd-guard-rust
