@@ -476,10 +476,24 @@ describe('Config', () => {
       expect(config.linterType).toBe('eslint')
     })
 
+    test('returns golangci-lint when LINTER_TYPE env var is set to golangci-lint', () => {
+      process.env.LINTER_TYPE = 'golangci-lint'
+
+      const config = new Config()
+
+      expect(config.linterType).toBe('golangci-lint')
+    })
+
     test('returns value from ConfigOptions when linterType is provided', () => {
       const config = new Config({ linterType: 'eslint' })
 
       expect(config.linterType).toBe('eslint')
+    })
+
+    test('returns golangci-lint from ConfigOptions when provided', () => {
+      const config = new Config({ linterType: 'golangci-lint' })
+
+      expect(config.linterType).toBe('golangci-lint')
     })
 
     test('ConfigOptions takes precedence over env var', () => {
