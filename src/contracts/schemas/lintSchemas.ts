@@ -53,6 +53,7 @@ export const LintDataSchema = LintResultSchema.extend({
 
 export type ESLintMessage = z.infer<typeof ESLintMessageSchema>
 export type ESLintResult = z.infer<typeof ESLintResultSchema>
+export type GolangciLintPosition = z.infer<typeof GolangciLintPositionSchema>
 export type GolangciLintIssue = z.infer<typeof GolangciLintIssueSchema>
 export type GolangciLintResult = z.infer<typeof GolangciLintResultSchema>
 export type LintData = z.infer<typeof LintDataSchema>

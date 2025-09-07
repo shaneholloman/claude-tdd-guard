@@ -111,6 +111,12 @@ export const testData = {
   eslintMessageWithout: lintFactory.eslintMessageWithout,
   eslintResult: lintFactory.eslintResult,
   eslintResultWithout: lintFactory.eslintResultWithout,
+  golangciLintPosition: lintFactory.golangciLintPosition,
+  golangciLintPositionWithout: lintFactory.golangciLintPositionWithout,
+  golangciLintIssue: lintFactory.golangciLintIssue,
+  golangciLintIssueWithout: lintFactory.golangciLintIssueWithout,
+  golangciLintResult: lintFactory.golangciLintResult,
+  golangciLintResultWithout: lintFactory.golangciLintResultWithout,
 
   // UserPromptSubmit factories
   userPromptSubmit: userPromptSubmitFactory.userPromptSubmit,

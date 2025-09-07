@@ -8,6 +8,9 @@ import type {
   LintResult,
   ESLintMessage,
   ESLintResult,
+  GolangciLintPosition,
+  GolangciLintIssue,
+  GolangciLintResult,
 } from '../../../src/contracts/schemas/lintSchemas'
 import { omit } from './helpers'
 
@@ -249,4 +252,101 @@ export const lintDataWithoutErrors = (params?: Partial<LintData>): LintData => {
     hasNotifiedAboutLintIssues: false,
     ...params,
   }
+}
+
+/**
+ * Creates a GolangciLint position object
+ * @param params - Optional parameters for the position
+ */
+export const golangciLintPosition = (
+  params?: Partial<GolangciLintPosition>
+): GolangciLintPosition => {
+  const defaults: GolangciLintPosition = {
+    Filename: '/path/to/file.go',
+    Line: 10,
+    Column: 5,
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a GolangciLint position object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the position
+ */
+export const golangciLintPositionWithout = <
+  K extends keyof GolangciLintPosition,
+>(
+  keys: K[],
+  params?: Partial<GolangciLintPosition>
+): Omit<GolangciLintPosition, K> => {
+  const fullPosition = golangciLintPosition(params)
+  return omit(fullPosition, keys)
+}
+
+/**
+ * Creates a GolangciLint issue object
+ * @param params - Optional parameters for the issue
+ */
+export const golangciLintIssue = (
+  params?: Partial<GolangciLintIssue>
+): GolangciLintIssue => {
+  const defaults: GolangciLintIssue = {
+    FromLinter: 'typecheck',
+    Text: 'undefined: variable',
+    Severity: 'error',
+    Pos: golangciLintPosition(),
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a GolangciLint issue object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the issue
+ */
+export const golangciLintIssueWithout = <K extends keyof GolangciLintIssue>(
+  keys: K[],
+  params?: Partial<GolangciLintIssue>
+): Omit<GolangciLintIssue, K> => {
+  const fullIssue = golangciLintIssue(params)
+  return omit(fullIssue, keys)
+}
+
+/**
+ * Creates a GolangciLint result object
+ * @param params - Optional parameters for the result
+ */
+export const golangciLintResult = (
+  params?: Partial<GolangciLintResult>
+): GolangciLintResult => {
+  const defaults: GolangciLintResult = {
+    Issues: [golangciLintIssue()],
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a GolangciLint result object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the result
+ */
+export const golangciLintResultWithout = <K extends keyof GolangciLintResult>(
+  keys: K[],
+  params?: Partial<GolangciLintResult>
+): Omit<GolangciLintResult, K> => {
+  const fullResult = golangciLintResult(params)
+  return omit(fullResult, keys)
 }

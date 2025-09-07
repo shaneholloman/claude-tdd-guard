@@ -237,43 +237,29 @@ describe('GolangciLintPositionSchema', () => {
   test.each([
     {
       description: 'valid position with all fields',
-      position: {
-        Filename: '/path/to/file.go',
-        Line: 10,
-        Column: 5,
-      },
+      position: testData.golangciLintPosition(),
       expectedSuccess: true,
     },
     {
       description: 'without required Filename',
-      position: {
-        Line: 10,
-        Column: 5,
-      },
+      position: testData.golangciLintPositionWithout(['Filename']),
       expectedSuccess: false,
     },
     {
       description: 'without required Line',
-      position: {
-        Filename: '/path/to/file.go',
-        Column: 5,
-      },
+      position: testData.golangciLintPositionWithout(['Line']),
       expectedSuccess: false,
     },
     {
       description: 'without required Column',
-      position: {
-        Filename: '/path/to/file.go',
-        Line: 10,
-      },
+      position: testData.golangciLintPositionWithout(['Column']),
       expectedSuccess: false,
     },
     {
       description: 'with invalid Line type',
       position: {
-        Filename: '/path/to/file.go',
+        ...testData.golangciLintPosition(),
         Line: '10',
-        Column: 5,
       },
       expectedSuccess: false,
     },
@@ -287,63 +273,31 @@ describe('GolangciLintIssueSchema', () => {
   test.each([
     {
       description: 'valid issue with all fields',
-      issue: {
-        FromLinter: 'typecheck',
-        Text: 'undefined: variable',
-        Severity: 'error',
-        Pos: {
-          Filename: '/path/to/file.go',
-          Line: 10,
-          Column: 5,
-        },
-      },
+      issue: testData.golangciLintIssue(),
       expectedSuccess: true,
     },
     {
       description: 'without required FromLinter',
-      issue: {
-        Text: 'undefined: variable',
-        Severity: 'error',
-        Pos: {
-          Filename: '/path/to/file.go',
-          Line: 10,
-          Column: 5,
-        },
-      },
+      issue: testData.golangciLintIssueWithout(['FromLinter']),
       expectedSuccess: false,
     },
     {
       description: 'without required Text',
-      issue: {
-        FromLinter: 'typecheck',
-        Severity: 'error',
-        Pos: {
-          Filename: '/path/to/file.go',
-          Line: 10,
-          Column: 5,
-        },
-      },
+      issue: testData.golangciLintIssueWithout(['Text']),
       expectedSuccess: false,
     },
     {
       description: 'without required Pos',
-      issue: {
-        FromLinter: 'typecheck',
-        Text: 'undefined: variable',
-        Severity: 'error',
-      },
+      issue: testData.golangciLintIssueWithout(['Pos']),
       expectedSuccess: false,
     },
     {
       description: 'with invalid Pos structure',
       issue: {
-        FromLinter: 'typecheck',
-        Text: 'undefined: variable',
-        Severity: 'error',
+        ...testData.golangciLintIssue(),
         Pos: {
-          Filename: '/path/to/file.go',
+          ...testData.golangciLintPosition(),
           Line: 'invalid',
-          Column: 5,
         },
       },
       expectedSuccess: false,
@@ -358,55 +312,30 @@ describe('GolangciLintResultSchema', () => {
   test.each([
     {
       description: 'valid result with Issues array',
-      result: {
-        Issues: [
-          {
-            FromLinter: 'typecheck',
-            Text: 'undefined: variable',
-            Severity: 'error',
-            Pos: {
-              Filename: '/path/to/file.go',
-              Line: 10,
-              Column: 5,
-            },
-          },
-        ],
-      },
+      result: testData.golangciLintResult(),
       expectedSuccess: true,
     },
     {
       description: 'valid result with empty Issues array',
-      result: {
-        Issues: [],
-      },
+      result: testData.golangciLintResult({ Issues: [] }),
       expectedSuccess: true,
     },
     {
       description: 'valid result without Issues (undefined)',
-      result: {},
+      result: testData.golangciLintResultWithout(['Issues']),
       expectedSuccess: true,
     },
     {
       description: 'invalid result with malformed issue in Issues array',
-      result: {
-        Issues: [
-          {
-            FromLinter: 'typecheck',
-            // Missing required Text field
-            Severity: 'error',
-            Pos: {
-              Filename: '/path/to/file.go',
-              Line: 10,
-              Column: 5,
-            },
-          },
-        ],
-      },
+      result: testData.golangciLintResult({
+        Issues: [testData.golangciLintIssueWithout(['Text'])],
+      }),
       expectedSuccess: false,
     },
     {
       description: 'invalid result with non-array Issues',
       result: {
+        ...testData.golangciLintResult(),
         Issues: 'not-an-array',
       },
       expectedSuccess: false,
