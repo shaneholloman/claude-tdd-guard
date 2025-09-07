@@ -19,6 +19,8 @@
 #   - Rust: crates.io, static.crates.io, index.crates.io
 # - Claude/Anthropic services: api.anthropic.com, sentry.io, statsig.com
 # - JetBrains plugin marketplace: plugins.jetbrains.com
+# - VS Code extension galleries: marketplace.visualstudio.com, github.gallerycdn.vsassets.io, 
+#   ms-python.gallerycdn.vsassets.io, anthropic.gallerycdn.vsassets.io, mobile.events.data.microsoft.com
 # - Host network (for Docker operations)
 #
 # BLOCKED CONNECTIONS:
@@ -121,7 +123,12 @@ for domain in \
     "crates.io" \
     "static.crates.io" \
     "index.crates.io" \
-    "plugins.jetbrains.com"; do
+    "plugins.jetbrains.com" \
+    "marketplace.visualstudio.com" \
+    "github.gallerycdn.vsassets.io" \
+    "ms-python.gallerycdn.vsassets.io" \
+    "anthropic.gallerycdn.vsassets.io" \
+    "mobile.events.data.microsoft.com"; do
     echo "Resolving $domain..."
     # Retry DNS resolution with exponential backoff
     for attempt in 1 2 3 4 5; do
