@@ -38,6 +38,7 @@ export class ClaudeCodeSdk implements IModelClient {
       maxThinkingTokens: 0,
       model: this.config.modelVersion,
       strictMcpConfig: true,
+      cwd: this.config.dataDir,
     }
   }
 }

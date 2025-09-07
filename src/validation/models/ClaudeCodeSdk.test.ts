@@ -76,6 +76,11 @@ describe('ClaudeCodeSdk', () => {
     test('uses SYSTEM_PROMPT for customSystemPrompt', async () => {
       expect(getUsedOptions().customSystemPrompt).toBe(SYSTEM_PROMPT)
     })
+
+    test('sets cwd to config dataDir', async () => {
+      // Prevents hook trigggers and keeps queries out of project history
+      expect(getUsedOptions().cwd).toBe(config.dataDir)
+    })
   })
 
   describe('result handling', () => {
