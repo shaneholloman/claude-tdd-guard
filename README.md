@@ -26,7 +26,7 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 - **Lint Integration** - Enforces refactoring using your linting rules
 - **Multi-Language Support** - TypeScript, JavaScript, Python, PHP, Go, and Rust
 - **Customizable Rules** - Adjust validation rules to match your TDD style
-- **Flexible Validation** - Use local Claude or faster Anthropic API
+- **Flexible Validation** - Use Claude Code or Anthropic API
 - **Session Control** - Toggle on and off mid-session
 
 ## Requirements
@@ -246,9 +246,7 @@ See [Strengthening TDD Enforcement](docs/enforcement.md) to prevent agents from 
 **Advanced:**
 
 - [ESLint integration](docs/linting.md) - Automated refactoring support
-- [AI Models](docs/ai-model.md) - Switch between Claude CLI and Anthropic API
-
-**Note:** If TDD Guard can't find Claude, see [Claude Binary Setup](docs/claude-binary.md).
+- [AI Models](docs/ai-model.md) - Configure validation client and model version
 
 ## Security Notice
 
