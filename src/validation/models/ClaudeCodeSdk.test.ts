@@ -62,6 +62,23 @@ describe('ClaudeCodeSdk', () => {
       expect(getUsedOptions().allowedTools).toEqual([])
     })
 
+    test('sets disallowedTools to prevent file operations and other tools', async () => {
+      const expectedDisallowedTools = [
+        'Read',
+        'Edit',
+        'MultiEdit',
+        'Write',
+        'Grep',
+        'Glob',
+        'Bash',
+        'WebFetch',
+        'WebSearch',
+        'Task',
+        'TodoWrite',
+      ]
+      expect(getUsedOptions().disallowedTools).toEqual(expectedDisallowedTools)
+    })
+
     test('sets maxThinkingTokens to 0', async () => {
       expect(getUsedOptions().maxThinkingTokens).toBe(0)
     })
