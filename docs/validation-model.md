@@ -1,4 +1,4 @@
-# AI Model Configuration
+# Validation Model Configuration
 
 TDD Guard validates changes using AI. Configure both the validation client (SDK or API) and the Claude model version.
 

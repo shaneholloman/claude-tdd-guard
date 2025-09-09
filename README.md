@@ -9,7 +9,7 @@ Automated Test-Driven Development enforcement for Claude Code.
 
 ## Overview
 
-TDD Guard ensures Claude Code follows Test-Driven Development principles. When your agent tries to skip tests or over-implement, TDD Guard blocks the action and explains what needs to happen instead—enforcing the red-green-refactor cycle automatically.
+TDD Guard ensures Claude Code follows Test-Driven Development principles. When your agent tries to skip tests or over-implement, TDD Guard blocks the action and explains what needs to happen instead.
 
 <p align="center">
   <a href="https://nizar.se/uploads/videos/tdd-guard-demo.mp4">
@@ -26,7 +26,7 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 - **Lint Integration** - Enforces refactoring using your linting rules
 - **Multi-Language Support** - TypeScript, JavaScript, Python, PHP, Go, and Rust
 - **Customizable Rules** - Adjust validation rules to match your TDD style
-- **Flexible Validation** - Use Claude Code or Anthropic API
+- **Flexible Validation** - Choose faster or more capable models for your needs
 - **Session Control** - Toggle on and off mid-session
 
 ## Requirements
@@ -240,21 +240,20 @@ Use the `/hooks` command in Claude Code:
 4. Select `+ Add new hook...` and enter: `tdd-guard`
 5. Choose where to save (Project settings recommended)
 
-See [Strengthening TDD Enforcement](docs/enforcement.md) to prevent agents from bypassing validation.
-
 ## Configuration
 
 **Quick Setup:**
 
 - [Toggle commands](docs/quick-commands.md) - Enable/disable with `tdd-guard on/off`
 - [Session clearing](docs/session-clearing.md) - Automatic cleanup on new sessions
-- [Custom instructions](docs/custom-instructions.md) - Customize TDD validation rules
-- [Ignore patterns](docs/ignore-patterns.md) - Control which files are validated
 
 **Advanced:**
 
-- [ESLint integration](docs/linting.md) - Automated refactoring support
-- [AI Models](docs/ai-model.md) - Configure validation client and model version
+- [Custom instructions](docs/custom-instructions.md) - Customize TDD validation rules
+- [Lint integration](docs/linting.md) - Automated refactoring support
+- [Strengthening enforcement](docs/enforcement.md) - Prevent agents from bypassing validation
+- [Ignore patterns](docs/ignore-patterns.md) - Control which files are validated
+- [Validation Model](docs/validation-model.md) - Choose faster or more capable model
 
 ## Security Notice
 

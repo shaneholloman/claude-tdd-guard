@@ -82,7 +82,7 @@ The SDK client is easier to work with and requires less configuration for differ
 
 ### API Key Conflicts
 
-For information about API key conflicts and billing, see the [AI Model Configuration](ai-model.md) documentation.
+For information about API key conflicts and billing, see the [Validdation Model Configuration](validation-model.md) documentation.
 
 ## CLI Binary Configuration
 
@@ -139,5 +139,5 @@ Use Claude Code's built-in command:
 If you encounter issues during migration:
 
 1. Check the [main configuration guide](configuration.md)
-2. Review the [AI model configuration](ai-model.md)
+2. Review the [Validdation Model Configuration](validation-model.md)
 3. Open an issue at [github.com/nizos/tdd-guard/issues](https://github.com/nizos/tdd-guard/issues)

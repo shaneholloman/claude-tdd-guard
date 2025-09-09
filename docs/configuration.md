@@ -38,7 +38,7 @@ TDD Guard supports multiple validation clients:
 - **API** - Separate billing for CI/CD or faster validation
 - **CLI** (deprecated) - Legacy option, not recommended
 
-For detailed configuration, billing information, and troubleshooting, see the [AI Model Configuration](ai-model.md) guide.
+For detailed configuration, billing information, and troubleshooting, see the [Validdation Model Configuration](validation-model.md) guide.
 
 If you're using the deprecated CLI client, see the [Configuration Migration Guide](config-migration.md#cli-binary-configuration).
 
