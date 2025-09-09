@@ -1,7 +1,7 @@
 {
   "name": "tdd-guard",
   "version": "0.11.0",
-  "description": "TDD Guard enforces Test-Driven Development principles using Claude Code hooks",
+  "description": "Automated Test-Driven Development enforcement for Claude Code",
   "author": "Nizar Selander",
   "license": "MIT",
   "repository": {
@@ -52,13 +52,13 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "^1.0.108",
-    "@anthropic-ai/sdk": "^0.57.0",
+    "@anthropic-ai/claude-code": "^1.0.109",
+    "@anthropic-ai/sdk": "^0.61.0",
     "@types/uuid": "^10.0.0",
-    "dotenv": "^17.2.1",
+    "dotenv": "^17.2.2",
     "minimatch": "^10.0.3",
-    "uuid": "^11.1.0",
-    "zod": "^4.0.14"
+    "uuid": "^13.0.0",
+    "zod": "^4.1.5"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -72,19 +72,19 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@types/node": "^24.1.0",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
+    "@types/node": "^24.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
     "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9.32.0",
-    "eslint-plugin-sonarjs": "^3.0.4",
+    "eslint": "^9.35.0",
+    "eslint-plugin-sonarjs": "^3.0.5",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.2",
+    "lint-staged": "^16.1.6",
     "prettier": "^3.6.2",
     "tdd-guard-vitest": "*",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
 }
