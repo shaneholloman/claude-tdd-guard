@@ -34,6 +34,8 @@ reporters/                        # Language-specific test reporters
 ├── jest/                         # tdd-guard-jest - Jest reporter (npm)
 ├── phpunit/                      # tdd-guard/phpunit - PHPUnit reporter (composer)
 ├── pytest/                       # tdd-guard-pytest - Pytest reporter (pip)
+├── rspec/                        # tdd-guard-rspec - RSpec reporter (gem)
+├── rust/                         # tdd-guard-rust - Rust test reporter (crates.io)
 ├── test/                         # Shared test artifacts and integration tests
 └── vitest/                       # tdd-guard-vitest - Vitest reporter (npm)
 
@@ -51,7 +53,7 @@ src/                              # Main CLI application
 │   ├── validator.ts              # Sends context to AI model and parses response
 │   ├── context/                  # Formats operations for AI validation
 │   ├── prompts/                  # TDD validation rules and AI instructions
-│   └── models/                   # Claude CLI and Anthropic API clients
+│   └── models/                   # Claude SDK and Anthropic API clients
 └── index.ts                      # Package entry point
 
 test/                             # Main test suite (hooks, integration, utils)
@@ -81,7 +83,6 @@ TDD Guard is organized as a TypeScript project with integrated language-specific
 npm run build             # Build main package and workspace reporters (jest, vitest)
 npm run test              # All unit tests and base integration tests
 npm run test:unit         # Fast unit tests only
-npm run test:integration  # Slow integration tests (run after major prompt changes)
 npm run test:reporters    # Test all reporter implementations
 npm run lint              # Check code style and quality
 npm run format            # Auto-format code with Prettier
