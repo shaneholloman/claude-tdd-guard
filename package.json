@@ -1,6 +1,6 @@
 {
   "name": "tdd-guard",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Automated Test-Driven Development enforcement for Claude Code",
   "author": "Nizar Selander",
   "license": "MIT",
