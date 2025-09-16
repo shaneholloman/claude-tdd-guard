@@ -19,6 +19,9 @@
     "code-quality",
     "linting"
   ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "workspaces": [
     "reporters/vitest",
     "reporters/jest"

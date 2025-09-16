@@ -31,7 +31,7 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 22+
 - Claude Code or Anthropic API key
 - Test framework (Jest, Vitest, pytest, PHPUnit, Go 1.24+, or Rust with cargo/cargo-nextest)
 

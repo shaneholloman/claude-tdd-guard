@@ -13,7 +13,7 @@ A consistent, isolated environment for developing TDD Guard.
 
 | Component          | Purpose                                         |
 | ------------------ | ----------------------------------------------- |
-| Node.js 20         | Main CLI & Vitest/Jest reporters                |
+| Node.js 22         | Main CLI & Vitest/Jest reporters                |
 | Python 3.11 + pipx | Pytest reporter                                 |
 | PHP 8.2 + Composer | PHPUnit reporter                                |
 | Go 1.24            | Go reporter                                     |

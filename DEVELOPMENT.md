@@ -4,11 +4,11 @@
 
 ### Main Tests
 
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 
 ### Reporter Tests
 
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 - Python 3.8+ (for pytest reporter)
 - PHP 8.1+ and Composer (for PHPUnit reporter)
 - Go 1.21+ (for Go reporter)
