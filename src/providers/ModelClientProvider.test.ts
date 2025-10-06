@@ -3,7 +3,7 @@ import { ModelClientProvider } from './ModelClientProvider'
 import { Config } from '../config/Config'
 import { ClaudeCli } from '../validation/models/ClaudeCli'
 import { AnthropicApi } from '../validation/models/AnthropicApi'
-import { ClaudeCodeSdk } from '../validation/models/ClaudeCodeSdk'
+import { ClaudeAgentSdk } from '../validation/models/ClaudeAgentSdk'
 
 describe('ModelClientProvider', () => {
   test('uses default config when no config is provided', () => {
@@ -31,13 +31,13 @@ describe('ModelClientProvider', () => {
     expect(client).toBeInstanceOf(AnthropicApi)
   })
 
-  test('returns ClaudeCodeSdk when config validationClient is sdk', () => {
+  test('returns ClaudeAgentSdk when config validationClient is sdk', () => {
     const config = new Config({ validationClient: 'sdk' })
 
     const provider = new ModelClientProvider()
     const client = provider.getModelClient(config)
 
-    expect(client).toBeInstanceOf(ClaudeCodeSdk)
+    expect(client).toBeInstanceOf(ClaudeAgentSdk)
   })
 
   test('passes config with API key to AnthropicApi client', () => {

@@ -1,37 +1,37 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { ClaudeCodeSdk } from './ClaudeCodeSdk'
+import { ClaudeAgentSdk } from './ClaudeAgentSdk'
 import { Config } from '../../config/Config'
 import { IModelClient } from '../../contracts/types/ModelClient'
-import { query, type SDKResultMessage } from '@anthropic-ai/claude-code'
+import { query, type SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
 import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 
-describe('ClaudeCodeSdk', () => {
+describe('ClaudeAgentSdk', () => {
   describe('constructor', () => {
     test('implements the IModelClient interface', () => {
-      const client: IModelClient = new ClaudeCodeSdk()
+      const client: IModelClient = new ClaudeAgentSdk()
       expect(client.ask).toBeDefined()
     })
 
     test('accepts optional Config in constructor', () => {
       const config = new Config()
-      const client = new ClaudeCodeSdk(config)
+      const client = new ClaudeAgentSdk(config)
       expect(client['config']).toBe(config)
     })
 
     test('uses default Config when not provided', () => {
-      const client = new ClaudeCodeSdk()
+      const client = new ClaudeAgentSdk()
       expect(client['config']).toBeInstanceOf(Config)
     })
 
     test('accepts query function as second parameter', () => {
       const customQuery = vi.fn()
       const config = new Config()
-      const client = new ClaudeCodeSdk(config, customQuery)
+      const client = new ClaudeAgentSdk(config, customQuery)
       expect(client['queryFn']).toBe(customQuery)
     })
 
-    test('uses query from @anthropic-ai/claude-code when not provided', () => {
-      const client = new ClaudeCodeSdk()
+    test('uses query from @anthropic-ai/claude-agent-sdk when not provided', () => {
+      const client = new ClaudeAgentSdk()
       expect(client['queryFn']).toBe(query)
     })
   })
@@ -91,8 +91,8 @@ describe('ClaudeCodeSdk', () => {
       expect(getUsedOptions().strictMcpConfig).toBe(true)
     })
 
-    test('uses SYSTEM_PROMPT for customSystemPrompt', async () => {
-      expect(getUsedOptions().customSystemPrompt).toBe(SYSTEM_PROMPT)
+    test('uses SYSTEM_PROMPT for systemPrompt', async () => {
+      expect(getUsedOptions().systemPrompt).toBe(SYSTEM_PROMPT)
     })
 
     test('sets cwd to config dataDir', async () => {
@@ -112,7 +112,7 @@ describe('ClaudeCodeSdk', () => {
       const { client } = setupClient({ subtype: 'error_max_turns' })
 
       await expect(client.ask('test')).rejects.toThrow(
-        'Claude Code SDK error: error_max_turns'
+        'Claude Agent SDK error: error_max_turns'
       )
     })
 
@@ -120,7 +120,7 @@ describe('ClaudeCodeSdk', () => {
       const { client } = setupClient({ type: 'other', data: 'something' })
 
       await expect(client.ask('test')).rejects.toThrow(
-        'Claude Code SDK error: No result message received'
+        'Claude Agent SDK error: No result message received'
       )
     })
   })
@@ -132,7 +132,7 @@ function setupClient(
   config: Config = new Config()
 ) {
   const customQuery = createMockQuery(messageOverrides)
-  const client = new ClaudeCodeSdk(config, customQuery)
+  const client = new ClaudeAgentSdk(config, customQuery)
 
   const getLastCall = () => customQuery.mock.lastCall![0]
   const getUsedOptions = () => getLastCall().options

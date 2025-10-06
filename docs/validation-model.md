@@ -2,9 +2,9 @@
 
 TDD Guard validates changes using AI. Configure both the validation client (SDK or API) and the Claude model version.
 
-## Claude Code SDK (Default)
+## Claude Agent SDK (Default)
 
-The recommended approach. Uses the Claude Code SDK to communicate with Claude directly.
+The recommended approach. Uses the Claude Agent SDK to communicate with Claude directly.
 
 ```bash
 VALIDATION_CLIENT=sdk  # Default, can be omitted

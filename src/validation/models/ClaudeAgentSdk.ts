@@ -1,9 +1,9 @@
 import { Config } from '../../config/Config'
-import { query, type Options } from '@anthropic-ai/claude-code'
+import { query, type Options } from '@anthropic-ai/claude-agent-sdk'
 import { IModelClient } from '../../contracts/types/ModelClient'
 import { SYSTEM_PROMPT } from '../prompts/system-prompt'
 
-export class ClaudeCodeSdk implements IModelClient {
+export class ClaudeAgentSdk implements IModelClient {
   constructor(
     private readonly config: Config = new Config(),
     private readonly queryFn: typeof query = query
@@ -21,16 +21,16 @@ export class ClaudeCodeSdk implements IModelClient {
       if (message.subtype === 'success') {
         return message.result
       }
-      throw new Error(`Claude Code SDK error: ${message.subtype}`)
+      throw new Error(`Claude Agent SDK error: ${message.subtype}`)
     }
 
-    throw new Error('Claude Code SDK error: No result message received')
+    throw new Error('Claude Agent SDK error: No result message received')
   }
 
   private getQueryOptions(): Options {
     return {
       maxTurns: 1,
-      customSystemPrompt: SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
       allowedTools: [],
       disallowedTools: [
         'Read',
