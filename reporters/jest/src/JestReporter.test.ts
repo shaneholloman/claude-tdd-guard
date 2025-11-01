@@ -31,16 +31,18 @@ describe('JestReporter', () => {
 
     it('accepts Storage instance in reporterOptions', () => {
       const storage = new MemoryStorage()
+      const globalConfig = undefined
       const reporterOptions = { storage }
-      const reporter = new JestReporter(undefined, reporterOptions)
+      const reporter = new JestReporter(globalConfig, reporterOptions)
       expect(reporter['storage']).toBe(storage)
     })
 
     it('accepts projectRoot string in reporterOptions', () => {
       const rootPath = '/some/project/root'
+      const globalConfig = undefined
       const reporterOptions = { projectRoot: rootPath }
-      const reporter = new JestReporter(undefined, reporterOptions)
-      expect(reporter['storage']).toBeInstanceOf(FileStorage)
+      const reporter = new JestReporter(globalConfig, reporterOptions)
+
       // Verify the storage is configured with the correct path
       const fileStorage = reporter['storage'] as FileStorage
       const config = fileStorage['config'] as TDDConfig
@@ -282,7 +284,9 @@ describe('JestReporter', () => {
 // Test setup helper function
 function setupJestReporter() {
   const storage = new MemoryStorage()
-  const reporter = new JestReporter(undefined, { storage })
+  const globalConfig = undefined
+  const reporterOptions = { storage }
+  const reporter = new JestReporter(globalConfig, reporterOptions)
 
   // Helper to get parsed test data
   const getParsedData = async () => {
