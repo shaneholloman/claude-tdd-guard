@@ -1,4 +1,4 @@
-import { BaseReporter } from '@jest/reporters'
+import { BaseReporter, Config } from '@jest/reporters'
 import type { Test, TestResult, AggregatedResult } from '@jest/reporters'
 import type { AssertionResult } from '@jest/test-result'
 import type { TestContext } from '@jest/test-result'
@@ -19,7 +19,10 @@ export class JestReporter extends BaseReporter {
     { test: Test; testResult: TestResult }
   > = new Map()
 
-  constructor(reporterOptions?: TDDGuardReporterOptions) {
+  constructor(
+    _globalConfig?: Config.GlobalConfig,
+    reporterOptions?: TDDGuardReporterOptions
+  ) {
     super()
     this.storage = this.initializeStorage(reporterOptions)
   }
