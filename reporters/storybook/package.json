@@ -1,0 +1,36 @@
+{
+  "name": "tdd-guard-storybook",
+  "version": "0.1.0",
+  "description": "Storybook test-runner reporter for TDD Guard",
+  "author": "Tony Kornmeier",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nizos/tdd-guard.git",
+    "directory": "reporters/storybook"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/*.tsbuildinfo",
+    "!dist/*.test-data.*"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tdd-guard": "^1.1.0"
+  },
+  "peerDependencies": {
+    "@storybook/test-runner": ">=0.19.0"
+  },
+  "devDependencies": {
+    "@storybook/test-runner": "^0.19.1",
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
