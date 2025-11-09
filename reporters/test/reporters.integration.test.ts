@@ -25,6 +25,7 @@ import {
   createPytestReporter,
   createGoReporter,
   createRustReporter,
+  createStorybookReporter,
 } from './factories'
 
 // Test data structure for each reporter
@@ -35,7 +36,14 @@ interface ReporterTestData {
   importErrorResults: unknown
 }
 
-type ReporterName = 'jest' | 'vitest' | 'phpunit' | 'pytest' | 'go' | 'rust'
+type ReporterName =
+  | 'jest'
+  | 'vitest'
+  | 'phpunit'
+  | 'pytest'
+  | 'go'
+  | 'rust'
+  | 'storybook'
 
 describe('Reporters', () => {
   const reporterData: ReporterTestData[] = []
@@ -49,6 +57,7 @@ describe('Reporters', () => {
       createPytestReporter(),
       createGoReporter(),
       createRustReporter(),
+      createStorybookReporter(),
     ]
 
     // Run all reporters in parallel
@@ -65,6 +74,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_passing.py' },
         { name: 'go', expected: 'singlePassing' },
         { name: 'rust', expected: 'single_passing' },
+        { name: 'storybook', expected: 'button--primary' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -124,6 +134,7 @@ describe('Reporters', () => {
           name: 'rust',
           expected: 'calculator_tests::should_add_numbers_correctly',
         },
+        { name: 'storybook', expected: 'should add numbers correctly' },
       ]
 
       it.each(reporters)('$name reports test name', ({ name, expected }) => {
@@ -511,6 +522,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: undefined }, // TODO: Fix
         { name: 'go', expected: 'passed' },
         { name: 'rust', expected: 'passed' },
+        { name: 'storybook', expected: 'passed' },
       ]
 
       it.each(reporters)(
