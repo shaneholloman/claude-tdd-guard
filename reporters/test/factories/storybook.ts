@@ -39,8 +39,10 @@ export function createStorybookReporter(): ReporterConfig {
       )
 
       // Run Storybook test-runner
-      const testRunnerPath = require.resolve(
-        '@storybook/test-runner/dist/test-storybook'
+      // Note: test-runner is installed in reporters/storybook, not at root
+      const testRunnerPath = join(
+        __dirname,
+        '../../storybook/node_modules/@storybook/test-runner/dist/test-storybook.js'
       )
       spawnSync(
         process.execPath,

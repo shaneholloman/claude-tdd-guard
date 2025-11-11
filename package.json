@@ -24,7 +24,8 @@
   },
   "workspaces": [
     "reporters/vitest",
-    "reporters/jest"
+    "reporters/jest",
+    "reporters/storybook"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
