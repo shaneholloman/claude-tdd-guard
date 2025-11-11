@@ -39,7 +39,7 @@ export function createStorybookReporter(): ReporterConfig {
       )
 
       // Start Storybook dev server in background
-      const npxPath = '/usr/bin/npx' // Fixed path for security
+      const npxPath = '/usr/local/bin/npx' // Fixed path for security
       const storybookProcess = spawn(
         npxPath,
         [
@@ -56,7 +56,7 @@ export function createStorybookReporter(): ReporterConfig {
           env: {
             ...process.env,
             NODE_ENV: 'development',
-            PATH: '/usr/bin:/bin',
+            PATH: '/usr/local/bin:/usr/bin:/bin',
           },
           stdio: 'pipe',
         }
