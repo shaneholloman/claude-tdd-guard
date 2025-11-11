@@ -91,6 +91,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_failing.py' },
         { name: 'go', expected: 'singleFailing' },
         { name: 'rust', expected: 'single_failing' },
+        { name: 'storybook', expected: 'single-failing.stories' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -107,6 +108,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_import_error.py' },
         { name: 'go', expected: 'missingImport' },
         { name: 'rust', expected: 'compilation' },
+        { name: 'storybook', expected: 'single-import-error.stories' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -157,6 +159,7 @@ describe('Reporters', () => {
           name: 'rust',
           expected: 'calculator_tests::should_add_numbers_correctly',
         },
+        { name: 'storybook', expected: 'should add numbers correctly' },
       ]
 
       it.each(reporters)('$name reports test name', ({ name, expected }) => {
@@ -179,6 +182,7 @@ describe('Reporters', () => {
         },
         { name: 'go', expected: 'CompilationError' },
         { name: 'rust', expected: 'build' },
+        { name: 'storybook', expected: 'should add numbers correctly' },
       ]
 
       it.each(reporters)(
@@ -261,6 +265,10 @@ describe('Reporters', () => {
           expected:
             'single_failing::single_failing::calculator_tests::should_add_numbers_correctly',
         },
+        {
+          name: 'storybook',
+          expected: 'Calculator > should add numbers correctly',
+        },
       ]
 
       it.each(reporters)(
@@ -289,6 +297,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_import_error.py' },
         { name: 'go', expected: 'missingImportModule/CompilationError' },
         { name: 'rust', expected: 'compilation::build' },
+        { name: 'storybook', expected: 'single-import-error.stories' },
       ]
 
       it.each(reporters)(
@@ -332,6 +341,7 @@ describe('Reporters', () => {
         'pytest',
         'go',
         'rust',
+        'storybook',
       ]
 
       it.each(reporters)('%s reports failing state', (reporter) => {
@@ -354,6 +364,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'failed' },
         { name: 'go', expected: 'failed' },
         { name: 'rust', expected: 'failed' },
+        { name: 'storybook', expected: 'failed' },
       ]
 
       it.each(reporters)(
@@ -394,6 +405,10 @@ describe('Reporters', () => {
           expected:
             "thread 'calculator_tests::should_add_numbers_correctly' panicked at src/lib.rs:12:9:",
         },
+        {
+          name: 'storybook',
+          expected: ['expected', '5', 'to be', '6'],
+        },
       ]
 
       it.each(reporters)(
@@ -426,6 +441,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: undefined },
         { name: 'go', expected: undefined },
         { name: 'rust', expected: '6' }, // Successfully extracts expected value
+        { name: 'storybook', expected: undefined },
       ]
 
       it.each(reporters)(
@@ -448,6 +464,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: undefined },
         { name: 'go', expected: undefined },
         { name: 'rust', expected: '5' }, // Successfully extracts actual value
+        { name: 'storybook', expected: undefined },
       ]
 
       it.each(reporters)(
@@ -493,6 +510,10 @@ describe('Reporters', () => {
         {
           name: 'rust',
           expected: ['E0432', 'unresolved import', 'non_existent_module'],
+        },
+        {
+          name: 'storybook',
+          expected: ["Cannot find module './non-existent-module'"],
         },
       ]
 
@@ -545,6 +566,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: undefined }, // TODO: Fix
         { name: 'go', expected: 'failed' },
         { name: 'rust', expected: 'failed' },
+        { name: 'storybook', expected: 'failed' },
       ]
 
       it.each(reporters)(
@@ -567,6 +589,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: undefined }, // TODO: Fix
         { name: 'go', expected: 'failed' },
         { name: 'rust', expected: 'failed' },
+        { name: 'storybook', expected: 'failed' },
       ]
 
       it.each(reporters)(
@@ -611,7 +634,7 @@ describe('Reporters', () => {
     scenario: 'passingResults' | 'failingResults' | 'importErrorResults',
     extractor: (data: unknown) => T
   ): Record<ReporterName, T | undefined> {
-    const [jest, vitest, phpunit, pytest, go, rust] = reporterData
+    const [jest, vitest, phpunit, pytest, go, rust, storybook] = reporterData
     return {
       jest: safeExtract(jest[scenario], extractor),
       vitest: safeExtract(vitest[scenario], extractor),
@@ -619,6 +642,7 @@ describe('Reporters', () => {
       pytest: safeExtract(pytest[scenario], extractor),
       go: safeExtract(go[scenario], extractor),
       rust: safeExtract(rust[scenario], extractor),
+      storybook: safeExtract(storybook[scenario], extractor),
     }
   }
 

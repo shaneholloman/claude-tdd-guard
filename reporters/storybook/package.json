@@ -28,9 +28,16 @@
     "@storybook/test-runner": ">=0.19.0"
   },
   "devDependencies": {
+    "@storybook/react-vite": "^8.4.7",
+    "@storybook/test": "^8.4.7",
     "@storybook/test-runner": "^0.19.1",
     "@types/node": "^24.1.0",
+    "@types/react": "^18.3.18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "storybook": "^8.4.7",
     "typescript": "^5.8.3",
+    "vite": "^6.0.11",
     "vitest": "^3.2.4"
   }
 }

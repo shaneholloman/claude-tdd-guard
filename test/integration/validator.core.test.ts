@@ -3,7 +3,7 @@ import { validator } from '../../src/validation/validator'
 import { Context } from '../../src/contracts/types/Context'
 import { Config } from '../../src/config/Config'
 import { ModelClientProvider } from '../../src/providers/ModelClientProvider'
-import { testData } from '@testUtils'
+import { testData } from '../utils'
 import { expectDecision } from '../utils/factories/scenarios'
 
 const { createEditOperation, languages } = testData
@@ -14,12 +14,13 @@ describe('Core Validator Scenarios', () => {
   const model = provider.getModelClient(config)
 
   languages.forEach((lang) => {
+    const { methodStubReturning0, methodImplementation, empty, completeClass } =
+      lang.implementationModifications
+
     describe(`${lang.language} scenarios`, () => {
       test('should allow making a failing test pass', async () => {
-        const oldContent =
-          lang.implementationModifications.methodStubReturning0.content
-        const newContent =
-          lang.implementationModifications.methodImplementation.content
+        const oldContent = methodStubReturning0.content
+        const newContent = methodImplementation.content
         const operation = createEditOperation(
           lang.implementationFile,
           oldContent,
@@ -36,9 +37,8 @@ describe('Core Validator Scenarios', () => {
       })
 
       test('should block premature implementation', async () => {
-        const oldContent = lang.implementationModifications.empty.content
-        const newContent =
-          lang.implementationModifications.completeClass.content
+        const oldContent = empty.content
+        const newContent = completeClass.content
         const operation = createEditOperation(
           lang.implementationFile,
           oldContent,

@@ -1,88 +1,94 @@
+import { spawnSync } from 'node:child_process'
+import { writeFileSync, mkdirSync } from 'node:fs'
+import { join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
-import { StorybookReporter } from '../../storybook/src/StorybookReporter'
-
-// TODO: Replace mock-based approach with actual Storybook test-runner integration
-// This is a simplified mock-based implementation to validate the reporter
-// without requiring full Storybook setup. Future work should include:
-// - Real Storybook configuration
-// - Actual story files with play functions
-// - Full @storybook/test-runner setup
+import { copyTestArtifacts, getReporterPath } from './helpers'
 
 export function createStorybookReporter(): ReporterConfig {
+  const artifactDir = 'storybook'
   const testScenarios = {
-    singlePassing: 'Button.stories.tsx',
-    singleFailing: 'Button.stories.tsx',
-    singleImportError: 'Button.stories.tsx',
+    singlePassing: 'single-passing.stories.js',
+    singleFailing: 'single-failing.stories.js',
+    singleImportError: 'single-import-error.stories.js',
   }
 
   return {
     name: 'StorybookReporter',
     testScenarios,
     run: (tempDir, scenario: keyof TestScenarios) => {
-      const reporter = new StorybookReporter(tempDir)
+      // Copy Calculator.js (needed by all scenarios)
+      copyTestArtifacts(
+        artifactDir,
+        { common: 'Calculator.js' },
+        'common',
+        tempDir
+      )
 
-      // Simulate Storybook test-runner behavior with mocked contexts
-      switch (scenario) {
-        case 'singlePassing':
-          simulatePassingStory(reporter)
-          break
-        case 'singleFailing':
-          simulateFailingStory(reporter)
-          break
-        case 'singleImportError':
-          simulateImportError(reporter)
-          break
-      }
+      // Copy the specific test scenario story file
+      copyTestArtifacts(artifactDir, testScenarios, scenario, tempDir)
 
-      // Complete the test run
-      reporter.onComplete()
+      // Create .storybook directory and config
+      const storybookDir = join(tempDir, '.storybook')
+      mkdirSync(storybookDir, { recursive: true })
+      writeFileSync(join(storybookDir, 'main.js'), createStorybookConfig())
+
+      // Write test-runner config
+      writeFileSync(
+        join(tempDir, 'test-runner-jest.config.js'),
+        createTestRunnerConfig(tempDir)
+      )
+
+      // Run Storybook test-runner
+      const testRunnerPath = require.resolve(
+        '@storybook/test-runner/bin/test-storybook'
+      )
+      spawnSync(
+        process.execPath,
+        [testRunnerPath, '--config-dir', '.storybook', '--maxWorkers=1'],
+        {
+          cwd: tempDir,
+          env: {
+            ...process.env,
+            CI: 'true',
+            NODE_ENV: 'test',
+          },
+          stdio: 'pipe',
+        }
+      )
     },
   }
 }
 
-async function simulatePassingStory(reporter: StorybookReporter) {
-  await reporter.onStoryResult({
-    id: 'button--primary',
-    title: 'Calculator',
-    storyExport: {
-      name: 'should add numbers correctly',
-    },
-    status: 'passed',
-    errors: [],
-  })
+function createStorybookConfig(): string {
+  return `
+module.exports = {
+  stories: ['../*.stories.js'],
+  framework: '@storybook/react-vite',
+  core: {
+    disableTelemetry: true,
+  },
+}
+`
 }
 
-async function simulateFailingStory(reporter: StorybookReporter) {
-  await reporter.onStoryResult({
-    id: 'button--primary',
-    title: 'Calculator',
-    storyExport: {
-      name: 'should add numbers correctly',
-    },
-    status: 'failed',
-    errors: [
-      {
-        message: 'Expected: 6\nReceived: 5',
-        stack: 'Error: Expected: 6\n    at Button.stories.tsx:10:5',
+function createTestRunnerConfig(tempDir: string): string {
+  const reporterPath = getReporterPath('storybook/dist/index.js')
+  return `
+module.exports = {
+  testEnvironmentOptions: {
+    'jest-playwright': {
+      browsers: ['chromium'],
+      launchOptions: {
+        headless: true,
       },
-    ],
-  })
+    },
+  },
+  reporters: [
+    'default',
+    ['${reporterPath}', {
+      projectRoot: '${tempDir}'
+    }]
+  ],
 }
-
-async function simulateImportError(reporter: StorybookReporter) {
-  await reporter.onStoryResult({
-    id: 'button--primary',
-    title: 'Calculator',
-    storyExport: {
-      name: 'should add numbers correctly',
-    },
-    status: 'failed',
-    errors: [
-      {
-        message: "Cannot find module './non-existent-module'",
-        stack:
-          "Error: Cannot find module './non-existent-module' imported from Button.stories.tsx",
-      },
-    ],
-  })
+`
 }
