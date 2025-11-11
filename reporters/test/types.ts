@@ -7,7 +7,7 @@ export interface TestScenarios {
 export interface ReporterConfig {
   name: string
   testScenarios: TestScenarios
-  run: (tempDir: string, scenario: keyof TestScenarios) => void
+  run: (tempDir: string, scenario: keyof TestScenarios) => void | Promise<void>
 }
 
 export interface TestResultData {

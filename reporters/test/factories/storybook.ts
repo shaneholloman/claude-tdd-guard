@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
@@ -15,7 +15,7 @@ export function createStorybookReporter(): ReporterConfig {
   return {
     name: 'StorybookReporter',
     testScenarios,
-    run: (tempDir, scenario: keyof TestScenarios) => {
+    run: async (tempDir, scenario: keyof TestScenarios) => {
       // Copy Calculator.js (needed by all scenarios)
       copyTestArtifacts(
         artifactDir,
@@ -38,30 +38,84 @@ export function createStorybookReporter(): ReporterConfig {
         createTestRunnerConfig(tempDir)
       )
 
-      // Run Storybook test-runner
-      const testRunnerPath = require.resolve(
-        '@storybook/test-runner/dist/test-storybook'
-      )
-      const result = spawnSync(
-        process.execPath,
-        [testRunnerPath, '--config-dir', '.storybook', '--maxWorkers=1'],
+      // Start Storybook dev server in background
+      const npxPath = '/usr/bin/npx' // Fixed path for security
+      const storybookProcess = spawn(
+        npxPath,
+        [
+          'storybook',
+          'dev',
+          '--config-dir',
+          '.storybook',
+          '--port',
+          '6006',
+          '--ci',
+        ],
         {
           cwd: tempDir,
           env: {
             ...process.env,
-            CI: 'true',
-            NODE_ENV: 'test',
+            NODE_ENV: 'development',
+            PATH: '/usr/bin:/bin',
           },
           stdio: 'pipe',
         }
       )
 
-      // Debug: Log test-runner output if it failed
-      if (result.status !== 0) {
-        console.error('Storybook test-runner failed:')
-        console.error('stdout:', result.stdout?.toString())
-        console.error('stderr:', result.stderr?.toString())
-        console.error('status:', result.status)
+      // Wait for Storybook to be ready
+      const waitForStorybook = new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Storybook dev server timed out'))
+        }, 60000)
+
+        storybookProcess.stdout!.on('data', (data) => {
+          const output = data.toString()
+          if (
+            output.includes('Local:') ||
+            output.includes('http://localhost:6006')
+          ) {
+            clearTimeout(timeout)
+            resolve()
+          }
+        })
+
+        storybookProcess.on('error', (err) => {
+          clearTimeout(timeout)
+          reject(err)
+        })
+      })
+
+      try {
+        await waitForStorybook
+
+        // Run Storybook test-runner
+        const testRunnerPath = require.resolve(
+          '@storybook/test-runner/dist/test-storybook'
+        )
+        const result = spawnSync(
+          process.execPath,
+          [testRunnerPath, '--maxWorkers=1'],
+          {
+            cwd: tempDir,
+            env: {
+              ...process.env,
+              CI: 'true',
+              NODE_ENV: 'test',
+            },
+            stdio: 'pipe',
+          }
+        )
+
+        // Debug: Log test-runner output if it failed
+        if (result.status !== 0) {
+          console.error('Storybook test-runner failed:')
+          console.error('stdout:', result.stdout!.toString())
+          console.error('stderr:', result.stderr!.toString())
+          console.error('status:', result.status)
+        }
+      } finally {
+        // Kill Storybook dev server
+        storybookProcess.kill()
       }
     },
   }
