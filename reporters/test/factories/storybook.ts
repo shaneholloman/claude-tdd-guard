@@ -44,11 +44,10 @@ export function createStorybookReporter(): ReporterConfig {
         JSON.stringify({ name: 'storybook-test', type: 'module' })
       )
 
-      // Start Storybook dev server from reporter's node_modules
-      // This way we don't need to npm install in temp directory
+      // Start Storybook dev server from root node_modules (hoisted from workspace)
       const storybookBinPath = join(
         __dirname,
-        '../../storybook/node_modules/.bin/storybook'
+        '../../../node_modules/.bin/storybook'
       )
 
       const storybookProcess = spawn(
