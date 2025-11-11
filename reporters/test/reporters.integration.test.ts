@@ -63,7 +63,7 @@ describe('Reporters', () => {
     // Run all reporters in parallel
     const results = await Promise.all(reporters.map(runAllScenarios))
     reporterData.push(...results)
-  }, 30000)
+  }, 120000) // Increased timeout for Storybook test-runner (starts dev server + browser)
 
   describe('Module Path Reporting', () => {
     describe('when assertions are passing', () => {
