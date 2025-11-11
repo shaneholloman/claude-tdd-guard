@@ -716,7 +716,7 @@ async function runReporter(
     const storage = new FileStorage(tddConfig)
 
     // Run the test for the given scenario
-    reporter.run(tempDir, scenario)
+    await reporter.run(tempDir, scenario)
 
     // Get saved test data
     const savedData = await storage.getTest()
