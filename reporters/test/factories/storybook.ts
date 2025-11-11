@@ -40,7 +40,7 @@ export function createStorybookReporter(): ReporterConfig {
 
       // Run Storybook test-runner
       const testRunnerPath = require.resolve(
-        '@storybook/test-runner/bin/test-storybook'
+        '@storybook/test-runner/dist/test-storybook'
       )
       spawnSync(
         process.execPath,
