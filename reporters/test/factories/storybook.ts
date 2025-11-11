@@ -42,7 +42,7 @@ export function createStorybookReporter(): ReporterConfig {
       const testRunnerPath = require.resolve(
         '@storybook/test-runner/dist/test-storybook'
       )
-      spawnSync(
+      const result = spawnSync(
         process.execPath,
         [testRunnerPath, '--config-dir', '.storybook', '--maxWorkers=1'],
         {
@@ -55,6 +55,14 @@ export function createStorybookReporter(): ReporterConfig {
           stdio: 'pipe',
         }
       )
+
+      // Debug: Log test-runner output if it failed
+      if (result.status !== 0) {
+        console.error('Storybook test-runner failed:')
+        console.error('stdout:', result.stdout?.toString())
+        console.error('stderr:', result.stderr?.toString())
+        console.error('status:', result.status)
+      }
     },
   }
 }

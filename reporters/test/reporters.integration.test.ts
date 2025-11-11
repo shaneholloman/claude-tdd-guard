@@ -63,6 +63,12 @@ describe('Reporters', () => {
     // Run all reporters in parallel
     const results = await Promise.all(reporters.map(runAllScenarios))
     reporterData.push(...results)
+
+    // Debug: Check if storybook data exists
+    const storybookData = results.find((r) => r.name === 'StorybookReporter')
+    if (!storybookData?.passingResults) {
+      console.error('Storybook data missing:', storybookData)
+    }
   }, 120000) // Increased timeout for Storybook test-runner (starts dev server + browser)
 
   describe('Module Path Reporting', () => {
