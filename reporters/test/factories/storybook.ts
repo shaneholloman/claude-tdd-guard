@@ -38,19 +38,22 @@ export function createStorybookReporter(): ReporterConfig {
         createTestRunnerConfig(tempDir)
       )
 
-      // Start Storybook dev server in background
-      const npxPath = '/usr/local/bin/npx' // Fixed path for security
+      // Create minimal package.json
+      writeFileSync(
+        join(tempDir, 'package.json'),
+        JSON.stringify({ name: 'storybook-test', type: 'module' })
+      )
+
+      // Start Storybook dev server from reporter's node_modules
+      // This way we don't need to npm install in temp directory
+      const storybookBinPath = join(
+        __dirname,
+        '../../storybook/node_modules/.bin/storybook'
+      )
+
       const storybookProcess = spawn(
-        npxPath,
-        [
-          'storybook',
-          'dev',
-          '--config-dir',
-          '.storybook',
-          '--port',
-          '6006',
-          '--ci',
-        ],
+        storybookBinPath,
+        ['dev', '--config-dir', '.storybook', '--port', '6006', '--ci'],
         {
           cwd: tempDir,
           env: {
@@ -65,6 +68,7 @@ export function createStorybookReporter(): ReporterConfig {
       // Wait for Storybook to be ready
       const waitForStorybook = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
+          storybookProcess.kill()
           reject(new Error('Storybook dev server timed out'))
         }, 60000)
 
@@ -77,6 +81,11 @@ export function createStorybookReporter(): ReporterConfig {
             clearTimeout(timeout)
             resolve()
           }
+        })
+
+        storybookProcess.stderr!.on('data', (data) => {
+          // Log stderr for debugging
+          console.error('Storybook stderr:', data.toString())
         })
 
         storybookProcess.on('error', (err) => {
