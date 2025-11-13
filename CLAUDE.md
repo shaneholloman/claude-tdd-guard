@@ -36,6 +36,7 @@ reporters/                        # Language-specific test reporters
 ├── pytest/                       # tdd-guard-pytest - Pytest reporter (pip)
 ├── rspec/                        # tdd-guard-rspec - RSpec reporter (gem)
 ├── rust/                         # tdd-guard-rust - Rust test reporter (crates.io)
+├── storybook/                    # tdd-guard-storybook - Storybook test-runner reporter (npm)
 ├── test/                         # Shared test artifacts and integration tests
 └── vitest/                       # tdd-guard-vitest - Vitest reporter (npm)
 
@@ -65,7 +66,7 @@ docs/                             # Documentation (ADRs, configuration, etc.)
 TDD Guard is organized as a TypeScript project with integrated language-specific reporters:
 
 - **src/**: Core functionality including contracts, config, storage, and validation
-- **reporters/**: Language-specific test reporters (go, jest, phpunit, pytest, vitest)
+- **reporters/**: Language-specific test reporters (go, jest, phpunit, pytest, rspec, rust, storybook, vitest)
 - **test/**: Comprehensive test suite with integration tests and utilities
 
 ### Testing
@@ -80,7 +81,7 @@ TDD Guard is organized as a TypeScript project with integrated language-specific
 #### Commands
 
 ```bash
-npm run build             # Build main package and workspace reporters (jest, vitest)
+npm run build             # Build main package and workspace reporters (jest, storybook, vitest)
 npm run test              # All unit tests and base integration tests
 npm run test:unit         # Fast unit tests only
 npm run test:reporters    # Test all reporter implementations

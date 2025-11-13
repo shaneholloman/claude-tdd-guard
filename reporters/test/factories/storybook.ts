@@ -90,8 +90,6 @@ export function createStorybookReporter(): ReporterConfig {
 
         storybookProcess.stdout!.on('data', (data) => {
           const output = data.toString()
-          // Log all stdout for debugging
-          console.log('Storybook stdout:', output)
           if (
             output.includes('Local:') ||
             output.includes(`http://localhost:${port}`)
@@ -101,9 +99,8 @@ export function createStorybookReporter(): ReporterConfig {
           }
         })
 
-        storybookProcess.stderr!.on('data', (data) => {
-          // Log stderr for debugging
-          console.error('Storybook stderr:', data.toString())
+        storybookProcess.stderr!.on('data', () => {
+          // Stderr is captured but not logged during normal operation
         })
 
         storybookProcess.on('error', (err) => {
@@ -128,7 +125,7 @@ export function createStorybookReporter(): ReporterConfig {
         const testRunnerPath = require.resolve(
           '@storybook/test-runner/dist/test-storybook'
         )
-        const result = spawnSync(
+        spawnSync(
           process.execPath,
           [
             testRunnerPath,
@@ -147,13 +144,7 @@ export function createStorybookReporter(): ReporterConfig {
           }
         )
 
-        // Debug: Log test-runner output if it failed
-        if (result.status !== 0) {
-          console.error('Storybook test-runner failed:')
-          console.error('stdout:', result.stdout!.toString())
-          console.error('stderr:', result.stderr!.toString())
-          console.error('status:', result.status)
-        }
+        // Vitest captures test-runner output automatically
       } finally {
         // Kill Storybook dev server - use SIGKILL to ensure it dies
         storybookProcess.kill('SIGKILL')

@@ -70,14 +70,6 @@ describe('Reporters', () => {
         )
         .map((r) => r.value)
     )
-
-    // Debug: Check if storybook data exists
-    const storybookData = reporterData.find(
-      (r) => r.name === 'StorybookReporter'
-    )
-    if (!storybookData?.passingResults) {
-      console.error('Storybook data missing:', storybookData)
-    }
   }, 240000) // Increased timeout for all reporters (Storybook starts dev server + browser, others may be slower in containers)
 
   describe('Module Path Reporting', () => {

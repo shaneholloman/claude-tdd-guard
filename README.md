@@ -24,7 +24,7 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 - **Test-First Enforcement** - Blocks implementation without failing tests
 - **Minimal Implementation** - Prevents code beyond current test requirements
 - **Lint Integration** - Enforces refactoring using your linting rules
-- **Multi-Language Support** - TypeScript, JavaScript, Python, PHP, Go, and Rust
+- **Multi-Language Support** - TypeScript, JavaScript, Python, PHP, Go, Rust, and Storybook
 - **Customizable Rules** - Adjust validation rules to match your TDD style
 - **Flexible Validation** - Choose faster or more capable models for your needs
 - **Session Control** - Toggle on and off mid-session
@@ -33,7 +33,7 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 
 - Node.js 22+
 - Claude Code or Anthropic API key
-- Test framework (Jest, Vitest, pytest, PHPUnit, Go 1.24+, or Rust with cargo/cargo-nextest)
+- Test framework (Jest, Vitest, Storybook, pytest, PHPUnit, Go 1.24+, or Rust with cargo/cargo-nextest)
 
 ## Quick Start
 
@@ -116,6 +116,36 @@ export default config
 
 - [Vitest configuration](reporters/vitest/README.md#configuration)
 - [Jest configuration](reporters/jest/README.md#configuration)
+
+#### Storybook
+
+Install the [tdd-guard-storybook](https://www.npmjs.com/package/tdd-guard-storybook) reporter in your project:
+
+```bash
+npm install --save-dev tdd-guard-storybook
+```
+
+Add to your `.storybook/test-runner.js`:
+
+```javascript
+const { getJestConfig } = require('@storybook/test-runner')
+const { StorybookReporter } = require('tdd-guard-storybook')
+
+module.exports = {
+  ...getJestConfig(),
+  reporters: [
+    'default',
+    [
+      StorybookReporter,
+      {
+        projectRoot: '/Users/username/projects/my-app',
+      },
+    ],
+  ],
+}
+```
+
+**Note:** Storybook test-runner uses Jest under the hood, so the reporter integrates via Jest's reporter API. Specify the project root path when your Storybook config is not at the project root. See the [Storybook reporter configuration](reporters/storybook/README.md#configuration) for more details.
 
 </details>
 
