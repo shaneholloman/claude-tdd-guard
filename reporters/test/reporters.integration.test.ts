@@ -646,7 +646,7 @@ describe('Reporters', () => {
   ): Record<ReporterName, T | undefined> {
     const jest = reporterData.find((r) => r.name === 'JestReporter')
     const vitest = reporterData.find((r) => r.name === 'VitestReporter')
-    const phpunit = reporterData.find((r) => r.name === 'PhpunitReporter')
+    const phpunit = reporterData.find((r) => r.name === 'PHPUnitReporter')
     const pytest = reporterData.find((r) => r.name === 'PytestReporter')
     const go = reporterData.find((r) => r.name === 'GoReporter')
     const rust = reporterData.find((r) => r.name === 'RustReporter')
