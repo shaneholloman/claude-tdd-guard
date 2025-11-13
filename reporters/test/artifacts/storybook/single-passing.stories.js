@@ -3,6 +3,7 @@ import { Calculator } from './Calculator'
 
 export default {
   title: 'Calculator',
+  render: () => null, // No UI component, just testing logic
 }
 
 export const Primary = {

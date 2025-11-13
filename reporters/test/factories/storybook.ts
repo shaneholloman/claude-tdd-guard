@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process'
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, symlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
 import { copyTestArtifacts, getReporterPath } from './helpers'
@@ -16,6 +16,10 @@ export function createStorybookReporter(): ReporterConfig {
     name: 'StorybookReporter',
     testScenarios,
     run: async (tempDir, scenario: keyof TestScenarios) => {
+      // Use a random port to avoid conflicts when running tests in parallel
+      // Port range 8000-8999 avoids Chrome's unsafe port list (e.g., 6697 for IRC)
+      // eslint-disable-next-line sonarjs/pseudo-random -- Port allocation, not security-sensitive
+      const port = 8000 + Math.floor(Math.random() * 1000)
       // Copy Calculator.js (needed by all scenarios)
       copyTestArtifacts(
         artifactDir,
@@ -32,6 +36,8 @@ export function createStorybookReporter(): ReporterConfig {
       mkdirSync(storybookDir, { recursive: true })
       writeFileSync(join(storybookDir, 'main.js'), createStorybookConfig())
 
+      // Note: We don't need test-runner hooks since we're using Jest reporter to capture results
+
       // Write test-runner config
       writeFileSync(
         join(tempDir, 'test-runner-jest.config.js'),
@@ -44,6 +50,15 @@ export function createStorybookReporter(): ReporterConfig {
         JSON.stringify({ name: 'storybook-test', type: 'module' })
       )
 
+      // Create symlink to root node_modules so Vite can resolve dependencies
+      const rootNodeModules = join(__dirname, '../../../node_modules')
+      const tempNodeModules = join(tempDir, 'node_modules')
+      symlinkSync(rootNodeModules, tempNodeModules, 'dir')
+
+      // Ensure cache directory exists and is writable
+      const cacheDir = join(tempDir, '.storybook-cache')
+      mkdirSync(cacheDir, { recursive: true })
+
       // Start Storybook dev server from root node_modules (hoisted from workspace)
       const storybookBinPath = join(
         __dirname,
@@ -52,13 +67,15 @@ export function createStorybookReporter(): ReporterConfig {
 
       const storybookProcess = spawn(
         storybookBinPath,
-        ['dev', '--config-dir', '.storybook', '--port', '6006', '--ci'],
+        ['dev', '--config-dir', '.storybook', '--port', String(port), '--ci'],
         {
           cwd: tempDir,
           env: {
             ...process.env,
             NODE_ENV: 'development',
             PATH: '/usr/local/bin:/usr/bin:/bin',
+            // Use custom cache directory to avoid permission issues with symlinked node_modules
+            STORYBOOK_CACHE_DIR: join(tempDir, '.storybook-cache'),
           },
           stdio: 'pipe',
         }
@@ -73,9 +90,11 @@ export function createStorybookReporter(): ReporterConfig {
 
         storybookProcess.stdout!.on('data', (data) => {
           const output = data.toString()
+          // Log all stdout for debugging
+          console.log('Storybook stdout:', output)
           if (
             output.includes('Local:') ||
-            output.includes('http://localhost:6006')
+            output.includes(`http://localhost:${port}`)
           ) {
             clearTimeout(timeout)
             resolve()
@@ -91,6 +110,15 @@ export function createStorybookReporter(): ReporterConfig {
           clearTimeout(timeout)
           reject(err)
         })
+
+        storybookProcess.on('exit', (code, signal) => {
+          clearTimeout(timeout)
+          reject(
+            new Error(
+              `Storybook process exited early with code ${code}, signal ${signal}`
+            )
+          )
+        })
       })
 
       try {
@@ -102,7 +130,12 @@ export function createStorybookReporter(): ReporterConfig {
         )
         const result = spawnSync(
           process.execPath,
-          [testRunnerPath, '--maxWorkers=1'],
+          [
+            testRunnerPath,
+            '--url',
+            `http://localhost:${port}`,
+            '--maxWorkers=1',
+          ],
           {
             cwd: tempDir,
             env: {
@@ -122,8 +155,15 @@ export function createStorybookReporter(): ReporterConfig {
           console.error('status:', result.status)
         }
       } finally {
-        // Kill Storybook dev server
-        storybookProcess.kill()
+        // Kill Storybook dev server - use SIGKILL to ensure it dies
+        storybookProcess.kill('SIGKILL')
+
+        // Wait for process to actually exit to free up port 6006
+        await new Promise<void>((resolve) => {
+          storybookProcess.once('exit', () => resolve())
+          // Fallback timeout in case exit event doesn't fire
+          setTimeout(resolve, 1000)
+        })
       }
     },
   }
@@ -142,9 +182,20 @@ module.exports = {
 }
 
 function createTestRunnerConfig(tempDir: string): string {
-  const reporterPath = getReporterPath('storybook/dist/index.js')
+  const jestReporterPath = getReporterPath('jest/dist/index.js')
   return `
+const { getJestConfig } = require('@storybook/test-runner');
+
 module.exports = {
+  // Extend Storybook's default Jest config
+  ...getJestConfig(),
+  // Set rootDir to temp directory so Jest finds the story files
+  rootDir: '${tempDir}',
+  // Use our Jest reporter to capture test results from Storybook test-runner
+  reporters: [
+    'default',  // Keep Jest's default console output
+    ['${jestReporterPath}', { projectRoot: '${tempDir}' }]
+  ],
   testEnvironmentOptions: {
     'jest-playwright': {
       browsers: ['chromium'],
@@ -153,12 +204,6 @@ module.exports = {
       },
     },
   },
-  reporters: [
-    'default',
-    ['${reporterPath}', {
-      projectRoot: '${tempDir}'
-    }]
-  ],
 }
 `
 }

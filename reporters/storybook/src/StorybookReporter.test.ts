@@ -78,8 +78,14 @@ describe('StorybookReporter', () => {
     it('captures test states (passed/failed)', async () => {
       const passedContext = passedStoryContext()
       const failedContext = failedStoryContext()
-      await reporter.onStoryResult(passedContext)
-      await reporter.onStoryResult(failedContext)
+      await reporter.onStoryResult(passedContext, 'passed')
+      await reporter.onStoryResult(failedContext, 'failed', [
+        {
+          message: 'expected button to have aria-label',
+          stack:
+            'Error: expected button to have aria-label\n    at test.ts:7:19',
+        },
+      ])
       await reporter.onComplete()
 
       const saved = await storage.getTest()
@@ -91,7 +97,13 @@ describe('StorybookReporter', () => {
 
     it('includes error information for failed tests', async () => {
       const context = failedStoryContext()
-      await reporter.onStoryResult(context)
+      await reporter.onStoryResult(context, 'failed', [
+        {
+          message: 'expected button to have aria-label',
+          stack:
+            'Error: expected button to have aria-label\n    at test.ts:7:19',
+        },
+      ])
       await reporter.onComplete()
 
       const saved = await storage.getTest()
@@ -117,8 +129,8 @@ describe('StorybookReporter', () => {
       ['failed', 'failed'],
       ['skipped', 'skipped'],
     ] as const)('maps %s to %s', async (status, expected) => {
-      const context = createStoryContext({ status })
-      await reporter.onStoryResult(context)
+      const context = createStoryContext()
+      await reporter.onStoryResult(context, status)
       await reporter.onComplete()
 
       const saved = await storage.getTest()
@@ -160,8 +172,14 @@ describe('StorybookReporter', () => {
     it('reports "failed" when any test fails', async () => {
       const passedContext = passedStoryContext()
       const failedContext = failedStoryContext()
-      await reporter.onStoryResult(passedContext)
-      await reporter.onStoryResult(failedContext)
+      await reporter.onStoryResult(passedContext, 'passed')
+      await reporter.onStoryResult(failedContext, 'failed', [
+        {
+          message: 'expected button to have aria-label',
+          stack:
+            'Error: expected button to have aria-label\n    at test.ts:7:19',
+        },
+      ])
       await reporter.onComplete()
 
       const saved = await storage.getTest()

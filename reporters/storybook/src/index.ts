@@ -1,4 +1,7 @@
-export { StorybookReporter } from './StorybookReporter'
+import { StorybookReporter } from './StorybookReporter'
+
+export { StorybookReporter }
+export default StorybookReporter
 export type {
   StorybookReporterOptions,
   StoryError,

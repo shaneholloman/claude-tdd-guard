@@ -58,5 +58,6 @@
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
-  "postCreateCommand": "/usr/local/bin/setup-dev-environment.sh"
+  "postCreateCommand": "/usr/local/bin/setup-dev-environment.sh",
+  "postStartCommand": "npx playwright install chromium --only-shell 2>/dev/null || echo 'Playwright already installed'"
 }

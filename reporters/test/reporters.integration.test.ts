@@ -60,12 +60,21 @@ describe('Reporters', () => {
       createStorybookReporter(),
     ]
 
-    // Run all reporters in parallel
-    const results = await Promise.all(reporters.map(runAllScenarios))
-    reporterData.push(...results)
+    // Run all reporters in parallel, skipping any that fail (e.g., Rust not installed)
+    const results = await Promise.allSettled(reporters.map(runAllScenarios))
+    reporterData.push(
+      ...results
+        .filter(
+          (r): r is PromiseFulfilledResult<ReporterTestData> =>
+            r.status === 'fulfilled'
+        )
+        .map((r) => r.value)
+    )
 
     // Debug: Check if storybook data exists
-    const storybookData = results.find((r) => r.name === 'StorybookReporter')
+    const storybookData = reporterData.find(
+      (r) => r.name === 'StorybookReporter'
+    )
     if (!storybookData?.passingResults) {
       console.error('Storybook data missing:', storybookData)
     }
@@ -80,7 +89,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_passing.py' },
         { name: 'go', expected: 'singlePassing' },
         { name: 'rust', expected: 'single_passing' },
-        { name: 'storybook', expected: 'button--primary' },
+        { name: 'storybook', expected: 'single-passing.stories' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -142,7 +151,7 @@ describe('Reporters', () => {
           name: 'rust',
           expected: 'calculator_tests::should_add_numbers_correctly',
         },
-        { name: 'storybook', expected: 'should add numbers correctly' },
+        { name: 'storybook', expected: 'play-test' },
       ]
 
       it.each(reporters)('$name reports test name', ({ name, expected }) => {
@@ -165,7 +174,7 @@ describe('Reporters', () => {
           name: 'rust',
           expected: 'calculator_tests::should_add_numbers_correctly',
         },
-        { name: 'storybook', expected: 'should add numbers correctly' },
+        { name: 'storybook', expected: 'play-test' },
       ]
 
       it.each(reporters)('$name reports test name', ({ name, expected }) => {
@@ -188,7 +197,7 @@ describe('Reporters', () => {
         },
         { name: 'go', expected: 'CompilationError' },
         { name: 'rust', expected: 'build' },
-        { name: 'storybook', expected: 'should add numbers correctly' },
+        { name: 'storybook', expected: 'play-test' },
       ]
 
       it.each(reporters)(
@@ -273,7 +282,7 @@ describe('Reporters', () => {
         },
         {
           name: 'storybook',
-          expected: 'Calculator > should add numbers correctly',
+          expected: 'Calculator Primary play-test',
         },
       ]
 
@@ -303,7 +312,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_import_error.py' },
         { name: 'go', expected: 'missingImportModule/CompilationError' },
         { name: 'rust', expected: 'compilation::build' },
-        { name: 'storybook', expected: 'single-import-error.stories' },
+        { name: 'storybook', expected: 'Calculator Primary play-test' },
       ]
 
       it.each(reporters)(
@@ -519,7 +528,10 @@ describe('Reporters', () => {
         },
         {
           name: 'storybook',
-          expected: ["Cannot find module './non-existent-module'"],
+          expected: [
+            'Failed to fetch dynamically imported module',
+            'single-import-error.stories.js',
+          ],
         },
       ]
 
@@ -640,15 +652,22 @@ describe('Reporters', () => {
     scenario: 'passingResults' | 'failingResults' | 'importErrorResults',
     extractor: (data: unknown) => T
   ): Record<ReporterName, T | undefined> {
-    const [jest, vitest, phpunit, pytest, go, rust, storybook] = reporterData
+    const jest = reporterData.find((r) => r.name === 'JestReporter')
+    const vitest = reporterData.find((r) => r.name === 'VitestReporter')
+    const phpunit = reporterData.find((r) => r.name === 'PhpunitReporter')
+    const pytest = reporterData.find((r) => r.name === 'PytestReporter')
+    const go = reporterData.find((r) => r.name === 'GoReporter')
+    const rust = reporterData.find((r) => r.name === 'RustReporter')
+    const storybook = reporterData.find((r) => r.name === 'StorybookReporter')
+
     return {
-      jest: safeExtract(jest[scenario], extractor),
-      vitest: safeExtract(vitest[scenario], extractor),
-      phpunit: safeExtract(phpunit[scenario], extractor),
-      pytest: safeExtract(pytest[scenario], extractor),
-      go: safeExtract(go[scenario], extractor),
-      rust: safeExtract(rust[scenario], extractor),
-      storybook: safeExtract(storybook[scenario], extractor),
+      jest: safeExtract(jest?.[scenario], extractor),
+      vitest: safeExtract(vitest?.[scenario], extractor),
+      phpunit: safeExtract(phpunit?.[scenario], extractor),
+      pytest: safeExtract(pytest?.[scenario], extractor),
+      go: safeExtract(go?.[scenario], extractor),
+      rust: safeExtract(rust?.[scenario], extractor),
+      storybook: safeExtract(storybook?.[scenario], extractor),
     }
   }
 

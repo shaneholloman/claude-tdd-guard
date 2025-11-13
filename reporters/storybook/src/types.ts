@@ -33,9 +33,5 @@ export interface TestRunOutput {
 export interface TestContext {
   id: string
   title: string
-  storyExport: {
-    name: string
-  }
-  status?: 'passed' | 'failed' | 'skipped'
-  errors?: unknown[]
+  name: string // Story name comes directly from context, not nested in storyExport
 }

@@ -3,6 +3,7 @@ import { NonExistent } from './non-existent-module' // This module doesn't exist
 
 export default {
   title: 'Calculator',
+  render: () => null, // No UI component, just testing logic
 }
 
 export const Primary = {

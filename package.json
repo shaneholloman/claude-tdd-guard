@@ -44,6 +44,7 @@
     "test": "vitest run --project default --project golangci-lint",
     "test:unit": "vitest run --project unit --project golangci-lint",
     "test:integration": "vitest run --project integration",
+    "pretest:reporters": "npx playwright install chromium --only-shell 2>/dev/null || true",
     "test:reporters": "vitest run --project reporters",
     "test:coverage": "vitest run --coverage",
     "lint": "npm run build:workspaces && eslint . --fix --report-unused-disable-directives --max-warnings 0",

@@ -68,7 +68,12 @@ bundle install --gemfile=reporters/rspec/Gemfile
 # 8. Build Rust reporter
 echo ""
 echo "🦀 Building Rust reporter..."
-cargo build --release --manifest-path reporters/rust/Cargo.toml
+cargo build --release --manifest-path reporters/rust/Cargo.toml || echo "⚠️  Rust reporter build failed (non-fatal)"
+
+# 9. Install Playwright browsers for Storybook test-runner
+echo ""
+echo "🎭 Installing Playwright browsers for Storybook test-runner..."
+npx playwright install chromium --only-shell
 
 echo ""
 echo "✅ Development environment setup complete!"

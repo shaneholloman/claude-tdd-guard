@@ -19,8 +19,9 @@
 #   - Rust: crates.io, static.crates.io, index.crates.io
 # - Claude/Anthropic services: api.anthropic.com, sentry.io, statsig.com
 # - JetBrains plugin marketplace: plugins.jetbrains.com
-# - VS Code extension galleries: marketplace.visualstudio.com, github.gallerycdn.vsassets.io, 
+# - VS Code extension galleries: marketplace.visualstudio.com, github.gallerycdn.vsassets.io,
 #   ms-python.gallerycdn.vsassets.io, anthropic.gallerycdn.vsassets.io, mobile.events.data.microsoft.com
+# - Playwright browser downloads: cdn.playwright.dev, playwright.download.prss.microsoft.com
 # - Host network (for Docker operations)
 #
 # BLOCKED CONNECTIONS:
@@ -128,7 +129,9 @@ for domain in \
     "github.gallerycdn.vsassets.io" \
     "ms-python.gallerycdn.vsassets.io" \
     "anthropic.gallerycdn.vsassets.io" \
-    "mobile.events.data.microsoft.com"; do
+    "mobile.events.data.microsoft.com" \
+    "cdn.playwright.dev" \
+    "playwright.download.prss.microsoft.com"; do
     echo "Resolving $domain..."
     # Retry DNS resolution with exponential backoff
     for attempt in 1 2 3 4 5; do
@@ -142,12 +145,12 @@ for domain in \
             sleep $delay
         fi
     done
-    
+
     if [ -z "$ips" ]; then
         echo "ERROR: Failed to resolve $domain after 5 attempts"
         exit 1
     fi
-    
+
     while read -r ip; do
         # Skip CNAME records and other non-IP entries
         if [[ ! "$ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then

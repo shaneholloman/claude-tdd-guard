@@ -28,17 +28,21 @@ export class StorybookReporter {
     return storageOrRoot
   }
 
-  async onStoryResult(context: TestContext): Promise<void> {
+  async onStoryResult(
+    context: TestContext,
+    status: 'passed' | 'failed' | 'skipped' = 'passed',
+    errors?: unknown[]
+  ): Promise<void> {
     const moduleId = context.id
     const test: StoryTest = {
-      name: context.storyExport.name,
-      fullName: `${context.title} > ${context.storyExport.name}`,
-      state: context.status ?? 'passed',
+      name: context.name,
+      fullName: `${context.title} > ${context.name}`,
+      state: status,
     }
 
     // Add errors if present
-    if (context.errors && context.errors.length > 0) {
-      test.errors = context.errors.map((err: unknown): StoryError => {
+    if (errors && errors.length > 0) {
+      test.errors = errors.map((err: unknown): StoryError => {
         const errorObj = err as Record<string, unknown>
         const message = errorObj.message
         return {
