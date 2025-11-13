@@ -122,3 +122,63 @@ This matches the Vitest/Jest pattern and TDD Guard already handles "interrupted"
 - Users need to configure `.storybook/test-runner.ts` with the reporter
 - Follows same security validations as other reporters (absolute paths, project root validation)
 - Results saved to standard location: `.claude/tdd-guard/data/test.json`
+
+## Implementation Details
+
+### Integration Test Architecture
+
+The Storybook reporter integration tests follow the same real-execution pattern as Jest, Vitest, PHPUnit, Pytest, Go, and Rust reporters.
+
+**Test Flow:**
+
+```
+Integration Test
+    ↓
+Factory (storybook.ts)
+    ↓
+Copy story files → Write configs → Spawn test-runner
+    ↓
+@storybook/test-runner (Jest + Playwright)
+    ↓
+Executes stories → Calls StorybookReporter hooks
+    ↓
+StorybookReporter.onStoryResult() → Save to FileStorage
+    ↓
+Factory reads results → Returns to test assertions
+```
+
+### Test Artifacts Structure
+
+```
+reporters/test/storybook/
+├── .storybook/
+│   └── main.js                        # Storybook configuration
+├── Calculator.js                      # Simple component module
+├── single-passing.stories.js          # Story with passing assertions
+├── single-failing.stories.js          # Story with failing expect()
+└── single-import-error.stories.js     # Story importing non-existent module
+```
+
+Stories use JavaScript (`.stories.js`) to match the repository's test file convention (`.test.js`) and reduce complexity.
+
+### Factory Implementation
+
+The `reporters/test/factories/storybook.ts` factory:
+
+1. **Copies test artifacts** - Uses existing `copyTestArtifacts` helper
+2. **Generates test-runner config** - Writes `test-runner-jest.config.js` with reporter
+3. **Starts Storybook dev server** - Spawns `storybook dev` on random port (8000-8999 range)
+4. **Executes test-runner** - Spawns `test-storybook` command via `spawnSync`
+5. **Captures results** - Reporter saves to FileStorage, factory reads back
+
+Port range 8000-8999 avoids Chrome's unsafe port list (e.g., 6697 for IRC).
+
+### Key Design Decisions from Implementation
+
+**Test-runner integration:** Uses `@storybook/test-runner` which integrates with Jest's reporter API through `postVisit` and `onExit` hooks. The reporter accumulates results during story execution and writes once on completion.
+
+**Async server startup:** Factory implements timeout-based Storybook server detection by monitoring stdout for "Local:" or port-specific URLs. 240-second timeout accommodates slower container environments.
+
+**Optional reporter execution:** Integration tests use `Promise.allSettled` to make reporters optional, allowing tests to run even when some language-specific reporters aren't installed.
+
+**Error handling:** The reporter captures both interaction test failures and render failures (import errors, component crashes) as synthetic failed tests, ensuring complete coverage of all failure modes.
