@@ -78,7 +78,7 @@ describe('Reporters', () => {
     if (!storybookData?.passingResults) {
       console.error('Storybook data missing:', storybookData)
     }
-  }, 120000) // Increased timeout for Storybook test-runner (starts dev server + browser)
+  }, 240000) // Increased timeout for all reporters (Storybook starts dev server + browser, others may be slower in containers)
 
   describe('Module Path Reporting', () => {
     describe('when assertions are passing', () => {
