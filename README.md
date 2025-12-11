@@ -312,7 +312,7 @@ If you prefer to edit settings files directly, add all three hooks to your chose
         ]
       }
     ],
-    "userpromptsubmit": [
+    "UserPromptSubmit": [
       {
         "hooks": [
           {
