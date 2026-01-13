@@ -147,6 +147,8 @@ module.exports = {
 
 **Note:** Storybook test-runner uses Jest under the hood, so the reporter integrates via Jest's reporter API. Specify the project root path when your Storybook config is not at the project root. See the [Storybook reporter configuration](reporters/storybook/README.md#configuration) for more details.
 
+**Tip:** For Storybook 10+ with Vite-based frameworks, consider using [`@storybook/addon-vitest`](https://storybook.js.org/docs/writing-tests/integrations/vitest-addon) instead. This runs Storybook tests through Vitest, allowing you to use the `tdd-guard-vitest` reporter for faster test execution. See [Storybook with Vitest Addon](docs/storybook-vitest-addon.md) for setup instructions.
+
 </details>
 
 <details>
