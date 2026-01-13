@@ -5,9 +5,12 @@ Storybook test-runner reporter that captures test results for TDD Guard validati
 ## Requirements
 
 - Node.js 18+
-- Storybook 7.0+
+- Storybook 7.x - 9.x
 - @storybook/test-runner 0.19.0+
 - [TDD Guard](https://github.com/nizos/tdd-guard) installed globally
+
+> [!IMPORTANT]
+> For Storybook v10.x, use the `tdd-guard-vitest` reporter w/ Vitest
 
 ## Installation
 
