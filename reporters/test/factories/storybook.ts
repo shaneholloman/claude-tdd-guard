@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { writeFileSync, mkdirSync, symlinkSync } from 'node:fs'
 import { join } from 'node:path'
+import getPort from 'get-port'
 import type { ReporterConfig, TestScenarios } from '../types'
 import { copyTestArtifacts, getReporterPath } from './helpers'
 
@@ -16,10 +17,8 @@ export function createStorybookReporter(): ReporterConfig {
     name: 'StorybookReporter',
     testScenarios,
     run: async (tempDir, scenario: keyof TestScenarios) => {
-      // Use a random port to avoid conflicts when running tests in parallel
-      // Port range 8000-8999 avoids Chrome's unsafe port list (e.g., 6697 for IRC)
-      // eslint-disable-next-line sonarjs/pseudo-random -- Port allocation, not security-sensitive
-      const port = 8000 + Math.floor(Math.random() * 1000)
+      // Get an available port to avoid conflicts when running tests in parallel
+      const port = await getPort()
       // Copy Calculator.js (needed by all scenarios)
       copyTestArtifacts(
         artifactDir,

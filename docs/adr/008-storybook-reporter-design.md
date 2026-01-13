@@ -167,11 +167,9 @@ The `reporters/test/factories/storybook.ts` factory:
 
 1. **Copies test artifacts** - Uses existing `copyTestArtifacts` helper
 2. **Generates test-runner config** - Writes `test-runner-jest.config.js` with reporter
-3. **Starts Storybook dev server** - Spawns `storybook dev` on random port (8000-8999 range)
+3. **Starts Storybook dev server** - Spawns `storybook dev` on dynamically allocated port via `get-port`
 4. **Executes test-runner** - Spawns `test-storybook` command via `spawnSync`
 5. **Captures results** - Reporter saves to FileStorage, factory reads back
-
-Port range 8000-8999 avoids Chrome's unsafe port list (e.g., 6697 for IRC).
 
 ### Key Design Decisions from Implementation
 
