@@ -14,6 +14,7 @@
 - Go 1.21+ (for Go reporter)
 - Ruby 2.7+ and Bundler (for RSpec reporter)
 - Rust 1.70+ and Cargo (for Rust reporter)
+- Storybook <= 9.x (for Storybook reporter)
 
 ## Using Dev Containers
 
