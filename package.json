@@ -95,6 +95,8 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "js-yaml": "^4.1.1"
+    "js-yaml": "^4.1.1",
+    "minimatch": "$minimatch",
+    "test-exclude@^6.0.0": "^7.0.2"
   }
 }
