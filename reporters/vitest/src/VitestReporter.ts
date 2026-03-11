@@ -15,11 +15,31 @@ export class VitestReporter implements Reporter {
   private readonly storage: Storage
   private readonly collectedData: ModuleDataMap = new Map()
 
-  constructor(storageOrRoot?: Storage | string) {
-    this.storage =
-      typeof storageOrRoot === 'string'
-        ? new FileStorage(new Config({ projectRoot: storageOrRoot }))
-        : (storageOrRoot ?? new FileStorage())
+  constructor(input?: Storage | string | Record<string, unknown>) {
+    this.storage = this.initializeStorage(input)
+  }
+
+  private initializeStorage(
+    input?: Storage | string | Record<string, unknown>
+  ): Storage {
+    if (typeof input === 'string') {
+      return new FileStorage(new Config({ projectRoot: input }))
+    }
+
+    if (input && typeof input === 'object' && 'saveTest' in input) {
+      return input as Storage
+    }
+
+    if (
+      input &&
+      typeof input === 'object' &&
+      'projectRoot' in input &&
+      typeof input.projectRoot === 'string'
+    ) {
+      return new FileStorage(new Config({ projectRoot: input.projectRoot }))
+    }
+
+    return new FileStorage()
   }
 
   onTestModuleCollected(testModule: TestModule): void {

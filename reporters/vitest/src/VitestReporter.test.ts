@@ -76,6 +76,21 @@ describe('VitestReporter', () => {
     expect(config.dataDir).toBe(expectedDataDir)
   })
 
+  it('uses FileStorage when receiving empty options object from Vitest', () => {
+    const reporter = new VitestReporter({})
+    expect(reporter['storage']).toBeInstanceOf(FileStorage)
+  })
+
+  it('uses FileStorage with projectRoot from options object', () => {
+    const rootPath = '/some/project/root'
+    const reporter = new VitestReporter({ projectRoot: rootPath })
+    expect(reporter['storage']).toBeInstanceOf(FileStorage)
+    const fileStorage = reporter['storage'] as FileStorage
+    const config = fileStorage['config'] as Config
+    const expectedDataDir = join(rootPath, ...DEFAULT_DATA_DIR.split('/'))
+    expect(config.dataDir).toBe(expectedDataDir)
+  })
+
   describe('when collecting test data', () => {
     beforeEach(async () => {
       sut.reporter.onTestModuleCollected(module)

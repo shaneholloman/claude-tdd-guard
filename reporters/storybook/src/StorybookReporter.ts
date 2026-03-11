@@ -11,21 +11,31 @@ export class StorybookReporter {
   private readonly storage: Storage
   private readonly collectedTests: Map<string, StoryTest[]> = new Map()
 
-  constructor(storageOrRoot?: Storage | string) {
-    this.storage = this.initializeStorage(storageOrRoot)
+  constructor(input?: Storage | string | Record<string, unknown>) {
+    this.storage = this.initializeStorage(input)
   }
 
-  private initializeStorage(storageOrRoot?: Storage | string): Storage {
-    if (!storageOrRoot) {
-      return new FileStorage()
+  private initializeStorage(
+    input?: Storage | string | Record<string, unknown>
+  ): Storage {
+    if (typeof input === 'string') {
+      return new FileStorage(new Config({ projectRoot: input }))
     }
 
-    if (typeof storageOrRoot === 'string') {
-      const config = new Config({ projectRoot: storageOrRoot })
-      return new FileStorage(config)
+    if (input && typeof input === 'object' && 'saveTest' in input) {
+      return input as Storage
     }
 
-    return storageOrRoot
+    if (
+      input &&
+      typeof input === 'object' &&
+      'projectRoot' in input &&
+      typeof input.projectRoot === 'string'
+    ) {
+      return new FileStorage(new Config({ projectRoot: input.projectRoot }))
+    }
+
+    return new FileStorage()
   }
 
   async onStoryResult(
