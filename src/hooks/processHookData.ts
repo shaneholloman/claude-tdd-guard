@@ -1,7 +1,7 @@
 import { buildContext } from '../cli/buildContext'
 import { HookData, HookEvents } from './HookEvents'
 import { PostToolLintHandler } from './postToolLint'
-import { detectFileType } from './fileTypeDetection'
+import { detectFileType, isTestFile, detectLanguage, type Language } from './fileTypeDetection'
 import { LinterProvider } from '../providers/LinterProvider'
 import { UserPromptHandler } from './userPromptHandler'
 import { SessionHandler } from './sessionHandler'
@@ -10,7 +10,12 @@ import { Storage } from '../storage/Storage'
 import { FileStorage } from '../storage/FileStorage'
 import { ValidationResult } from '../contracts/types/ValidationResult'
 import { Context } from '../contracts/types/Context'
-import { HookDataSchema, isTodoWriteOperation, ToolOperationSchema } from '../contracts/schemas/toolSchemas'
+import { countTestDefinitions } from './testCounter'
+import {
+  HookDataSchema, isTodoWriteOperation, ToolOperationSchema,
+  isEditOperation, isMultiEditOperation, isWriteOperation,
+  type ToolOperation
+} from '../contracts/schemas/toolSchemas'
 import { PytestResultSchema } from '../contracts/schemas/pytestSchemas'
 import { isTestPassing, TestResultSchema } from '../contracts/schemas/reporterSchemas'
 import { LintDataSchema } from '../contracts/schemas/lintSchemas'
@@ -112,6 +117,10 @@ export async function processHookData(
     }
   }
 
+  if (isAllowedTestAddition(hookResult.data)) {
+    return defaultResult
+  }
+
   return await performValidation(deps)
 }
 
@@ -129,6 +138,53 @@ function shouldSkipValidation(hookData: HookData): boolean {
   })
 
   return !operationResult.success || isTodoWriteOperation(operationResult.data)
+}
+
+function isAllowedTestAddition(hookData: HookData): boolean {
+  const operationResult = ToolOperationSchema.safeParse(hookData)
+  if (!operationResult.success) return false
+
+  const operation = operationResult.data
+  if (isTodoWriteOperation(operation)) return false
+
+  const filePath = getFilePath(operation)
+  if (!filePath || !isTestFile(filePath)) return false
+
+  const language = detectLanguage(filePath)
+  if (!language) return false
+
+  const addedTestCount = countAddedTests(operation, language)
+  return addedTestCount === 1
+}
+
+function getFilePath(operation: ToolOperation): string | null {
+  if ('file_path' in operation.tool_input) {
+    return operation.tool_input.file_path
+  }
+  return null
+}
+
+function countAddedTests(operation: ToolOperation, language: Language): number {
+  if (isEditOperation(operation)) {
+    const newCount = countTestDefinitions(operation.tool_input.new_string, language)
+    const oldCount = operation.tool_input.old_string
+      ? countTestDefinitions(operation.tool_input.old_string, language)
+      : 0
+    return newCount - oldCount
+  }
+  if (isWriteOperation(operation)) {
+    return countTestDefinitions(operation.tool_input.content, language)
+  }
+  if (isMultiEditOperation(operation)) {
+    return operation.tool_input.edits.reduce((total, edit) => {
+      const newCount = countTestDefinitions(edit.new_string, language)
+      const oldCount = edit.old_string
+        ? countTestDefinitions(edit.old_string, language)
+        : 0
+      return total + (newCount - oldCount)
+    }, 0)
+  }
+  return 0
 }
 
 async function performValidation(deps: ProcessHookDataDeps): Promise<ValidationResult> {

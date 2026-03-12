@@ -339,6 +339,148 @@ describe('processHookData', () => {
     })
   })
 
+  describe('Pre-filter: test file additions', () => {
+    it('should skip validator when adding a single test to a test file', async () => {
+      const singleTestEdit = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.test.ts',
+          old_string: '',
+          new_string: `it('should add numbers', () => {
+          expect(add(1, 2)).toBe(3)
+        })`,
+        },
+      }
+
+      const result = await sut.process(singleTestEdit)
+
+      expect(sut.validatorHasBeenCalled()).toBe(false)
+      expect(result).toEqual(defaultResult)
+    })
+
+    it('should call validator when adding multiple tests to a test file', async () => {
+      const multipleTestEdit = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.test.ts',
+          old_string: '',
+          new_string: `it('should add', () => { expect(add(1, 2)).toBe(3) })
+it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
+        },
+      }
+
+      await sut.process(multipleTestEdit)
+
+      expect(sut.validatorHasBeenCalled()).toBe(true)
+    })
+
+    it('should call validator for edits to implementation files', async () => {
+      const implFileEdit = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.ts',
+          old_string: '',
+          new_string: `function add(a: number, b: number): number { return a + b }`,
+        },
+      }
+
+      await sut.process(implFileEdit)
+
+      expect(sut.validatorHasBeenCalled()).toBe(true)
+    })
+
+    it('should skip validator when writing a new test file with one test', async () => {
+      const newTestFile = testData.writeOperation({
+        tool_input: {
+          file_path: 'src/calculator.test.ts',
+          content: `import { describe, it, expect } from 'vitest'
+
+describe('Calculator', () => {
+  it('should add numbers', () => {
+    expect(add(1, 2)).toBe(3)
+  })
+})`,
+        },
+      })
+
+      const result = await sut.process(newTestFile)
+
+      expect(sut.validatorHasBeenCalled()).toBe(false)
+      expect(result).toEqual(defaultResult)
+    })
+
+    it('should call validator for test files with unknown language', async () => {
+      const unknownLangEdit = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.test.swift',
+          old_string: '',
+          new_string: `func testAddition() { XCTAssertEqual(add(1, 2), 3) }`,
+        },
+      }
+
+      await sut.process(unknownLangEdit)
+
+      expect(sut.validatorHasBeenCalled()).toBe(true)
+    })
+
+    it('should skip validator when Edit adds one new test to existing content', async () => {
+      const editAddingOneTest = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.test.ts',
+          old_string: `describe('Calculator', () => {
+  it('should add', () => { expect(add(1, 2)).toBe(3) })
+})`,
+          new_string: `describe('Calculator', () => {
+  it('should add', () => { expect(add(1, 2)).toBe(3) })
+
+  it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })
+})`,
+        },
+      }
+
+      const result = await sut.process(editAddingOneTest)
+
+      expect(sut.validatorHasBeenCalled()).toBe(false)
+      expect(result).toEqual(defaultResult)
+    })
+
+    it('should call validator when Edit adds two new tests', async () => {
+      const editAddingTwoTests = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.test.ts',
+          old_string: `describe('Calculator', () => {
+})`,
+          new_string: `describe('Calculator', () => {
+  it('should add', () => { expect(add(1, 2)).toBe(3) })
+  it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })
+})`,
+        },
+      }
+
+      await sut.process(editAddingTwoTests)
+
+      expect(sut.validatorHasBeenCalled()).toBe(true)
+    })
+
+    it('should call validator when editing a test without adding new tests', async () => {
+      const editModifyingTest = {
+        ...EDIT_HOOK_DATA,
+        tool_input: {
+          file_path: 'src/calculator.test.ts',
+          old_string: `it('should add', () => { expect(add(1, 2)).toBe(3) })`,
+          new_string: `it('should add numbers correctly', () => { expect(add(1, 2)).toBe(3) })`,
+        },
+      }
+
+      await sut.process(editModifyingTest)
+
+      expect(sut.validatorHasBeenCalled()).toBe(true)
+    })
+  })
+
   describe('UserPromptHandler integration', () => {
     it('should enable TDD Guard when user sends "tdd-guard on"', async () => {
       const storage = new MemoryStorage()
