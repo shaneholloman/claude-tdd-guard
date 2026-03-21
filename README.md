@@ -38,11 +38,13 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 
 ### Installation
 
-1. Add the marketplace: `/plugin marketplace add nizos/tdd-guard`
-2. Install the plugin: `/plugin install tdd-guard@tdd-guard`
-3. Run `/tdd-guard:setup` to detect your test framework and configure the reporter
+Open Claude Code in your project and run:
 
-**Note:** You may need to restart your terminal session or IDE extension for the setup skill to appear. For manual installation and configuration, see the [installation guide](docs/installation.md).
+1. `/plugin marketplace add nizos/tdd-guard`
+2. `/plugin install tdd-guard@tdd-guard`
+3. `/tdd-guard:setup`
+
+This adds the marketplace, installs the plugin, and configures the test reporter for your project. You may need to restart your terminal session or IDE extension for the setup skill to appear. For manual installation and configuration, see the [installation guide](docs/installation.md).
 
 ## Configuration
 
