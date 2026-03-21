@@ -1,0 +1,13 @@
+{
+  "name": "tdd-guard",
+  "owner": {
+    "name": "Nizar Selander"
+  },
+  "plugins": [
+    {
+      "name": "tdd-guard",
+      "source": "./plugin",
+      "description": "Automated Test-Driven Development enforcement for Claude Code"
+    }
+  ]
+}
