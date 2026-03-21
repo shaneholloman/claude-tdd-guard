@@ -52,9 +52,9 @@ Choose where to save your settings based on your needs:
 
 ## Hook Configuration
 
-See the [Quick Start guide](../README.md#3-configure-claude-code-hooks) in the main README for detailed hook configuration instructions, including both interactive and manual setup methods.
+If you installed TDD Guard as a [plugin](../plugin/README.md), hooks are configured automatically. For manual hook setup, see the [installation guide](installation.md#2-configure-claude-code-hooks).
 
-**Additional hooks:**
+**Related:**
 
 - [Quick commands](quick-commands.md) - Enable `tdd-guard on/off` commands
 - [Session management](session-management.md) - Automatic data clearing and rule setup
@@ -62,6 +62,8 @@ See the [Quick Start guide](../README.md#3-configure-claude-code-hooks) in the m
 - [Strengthening enforcement](enforcement.md) - Prevent agents from bypassing validation
 
 ## Test Reporter Configuration
+
+- [Manual Installation](installation.md#3-add-test-reporter) - Setup guide for all supported reporters
 
 - **JavaScript/TypeScript**:
   - [Vitest reporter configuration](../reporters/vitest/README.md#configuration)

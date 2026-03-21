@@ -14,6 +14,8 @@ After installing the plugin, run the setup skill to configure a test reporter fo
 
 This detects your test framework and configures the appropriate [reporter](https://github.com/nizos/tdd-guard).
 
+**Note:** You may need to restart your terminal session or IDE extension for the setup skill to appear.
+
 ## What's included
 
 - **Hooks** — Automatically registered on install. Validate file operations, handle `tdd-guard on/off` commands, and manage session state.
