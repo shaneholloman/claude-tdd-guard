@@ -1,6 +1,7 @@
 # TDD Guard
 
 [![npm version](https://badge.fury.io/js/tdd-guard.svg)](https://www.npmjs.com/package/tdd-guard)
+[![npm downloads](https://img.shields.io/npm/dt/tdd-guard)](https://www.npmjs.com/package/tdd-guard)
 [![CI](https://github.com/nizos/tdd-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/nizos/tdd-guard/actions/workflows/ci.yml)
 [![Security](https://github.com/nizos/tdd-guard/actions/workflows/security.yml/badge.svg)](https://github.com/nizos/tdd-guard/actions/workflows/security.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -57,9 +58,6 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 TDD Guard hooks run with your user permissions. We maintain automated security scanning, dependency audits, and welcome source code review. See [Claude Code's security considerations](https://docs.anthropic.com/en/docs/claude-code/hooks#security-considerations) for more on hook safety.
 
 ## Development
-
-- [Development Guide](DEVELOPMENT.md) - Setup instructions and development guidelines
-- [Architecture Decision Records](docs/adr/) - Technical design decisions and rationale
 
 ### Contributing
 
