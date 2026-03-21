@@ -1,7 +1,7 @@
 ---
 description: Set up TDD Guard for the current project. Detects the test framework, installs the appropriate reporter, and configures it.
 disable-model-invocation: true
-allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
+allowed-tools: [Read, Glob, Grep]
 ---
 
 # TDD Guard Setup
@@ -100,9 +100,17 @@ cargo nextest run 2>&1 | tdd-guard-rust --project-root /absolute/path/to/project
 Your scope is limited to installing and configuring a TDD Guard reporter. Do not make changes beyond that.
 
 - **Always use absolute paths** when configuring the project root in reporters.
-- **Do not modify the project's dependency files** (package.json, lock files, etc.) when possible. Prefer global installs to avoid friction in team projects.
 - **Do not install, update, or modify test frameworks**, build tools, or any other project dependencies. Only install the TDD Guard reporter itself.
 - **Do not modify existing test configuration** beyond adding the reporter. If existing configuration makes it difficult to add the reporter cleanly, inform the user and let them decide.
 - **If a TDD Guard reporter is already configured**, inform the user and stop.
 - **If multiple frameworks are detected**, ask the user which to configure.
 - **If something goes wrong or is unclear**, inform the user rather than attempting to fix it. Do not install additional packages or make extra changes to resolve issues.
+
+## After setup
+
+Once complete, inform the user that:
+
+- TDD Guard is now active and will validate changes against TDD principles
+- They can type `tdd-guard off` / `tdd-guard on` to toggle it mid-session
+- They can customize validation rules by editing `.claude/tdd-guard/data/instructions.md`
+- More help and configuration options are available at https://github.com/nizos/tdd-guard

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tdd-guard"
+            "command": "npx tdd-guard@latest"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tdd-guard"
+            "command": "npx tdd-guard@latest"
           }
         ]
       }
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tdd-guard"
+            "command": "npx tdd-guard@latest"
           }
         ]
       }
