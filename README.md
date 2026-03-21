@@ -28,46 +28,40 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 - **Flexible Validation** - Choose faster or more capable models for your needs
 - **Session Control** - Toggle on and off mid-session
 
-## Requirements
+## Getting Started
+
+### Requirements
 
 - Node.js 22+
 - A supported test framework (Vitest, Jest, Storybook, pytest, PHPUnit, Go, Rust)
 
-## Quick Start
+### Installation
 
 1. Add the marketplace: `/plugin marketplace add nizos/tdd-guard`
 2. Install the plugin: `/plugin install tdd-guard@tdd-guard`
 3. Run `/tdd-guard:setup` to detect your test framework and configure the reporter
 
-**Note:** You may need to restart your terminal session or IDE extension for the setup skill to appear.
+**Note:** You may need to restart your terminal session or IDE extension for the setup skill to appear. For manual installation and configuration, see the [installation guide](docs/installation.md).
 
-For manual installation and configuration, see the [installation guide](docs/installation.md).
-
-## Additional Configuration
+## Configuration
 
 - [Custom instructions](docs/custom-instructions.md) - Customize TDD validation rules
 - [Lint integration](docs/linting.md) - Automated refactoring support
 - [Strengthening enforcement](docs/enforcement.md) - Prevent agents from bypassing validation
 - [Ignore patterns](docs/ignore-patterns.md) - Control which files are validated
 - [Validation Model](docs/validation-model.md) - Choose faster or more capable model
+- [All settings](docs/configuration.md) - Complete settings documentation
 
 ## Security
 
 TDD Guard hooks run with your user permissions. We maintain automated security scanning, dependency audits, and welcome source code review. See [Claude Code's security considerations](https://docs.anthropic.com/en/docs/claude-code/hooks#security-considerations) for more on hook safety.
-
-## Roadmap
-
-- Expand language and test framework support
-- Validate file modifications made through MCPs and shell commands
-- Encourage meaningful refactoring opportunities when tests are green
-- Add support for multiple concurrent sessions per project
 
 ## Development
 
 - [Development Guide](DEVELOPMENT.md) - Setup instructions and development guidelines
 - [Architecture Decision Records](docs/adr/) - Technical design decisions and rationale
 
-## Contributing
+### Contributing
 
 Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to get started.
 
@@ -79,9 +73,15 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 - Go support: [@sQVe](https://github.com/sQVe), [@wizzomafizzo](https://github.com/wizzomafizzo)
 - Storybook support: [@akornmeier](https://github.com/akornmeier)
 
+### Roadmap
+
+- Expand language and test framework support
+- Validate file modifications made through MCPs and shell commands
+- Encourage meaningful refactoring opportunities when tests are green
+- Add support for multiple concurrent sessions per project
+
 ## Support
 
-- [Configuration](docs/configuration.md) - Complete settings documentation
 - [Discussions](https://github.com/nizos/tdd-guard/discussions) - Ask questions and share ideas
 - [Issues](https://github.com/nizos/tdd-guard/issues) - Report bugs and request features
 
