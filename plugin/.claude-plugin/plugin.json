@@ -1,0 +1,16 @@
+{
+  "name": "tdd-guard",
+  "description": "Automated Test-Driven Development enforcement for Claude Code",
+  "author": {
+    "name": "Nizar Selander"
+  },
+  "repository": "https://github.com/nizos/tdd-guard",
+  "license": "MIT",
+  "keywords": [
+    "tdd",
+    "test-driven-development",
+    "testing",
+    "hooks",
+    "code-quality"
+  ]
+}
