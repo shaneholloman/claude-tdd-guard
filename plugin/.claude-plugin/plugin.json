@@ -1,6 +1,7 @@
 {
   "name": "tdd-guard",
-  "description": "Automated Test-Driven Development enforcement for Claude Code",
+  "version": "1.0.0",
+  "description": "Automated Test-Driven Development enforcement",
   "author": {
     "name": "Nizar Selander"
   },

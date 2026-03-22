@@ -7,7 +7,7 @@
     {
       "name": "tdd-guard",
       "source": "./plugin",
-      "description": "Automated Test-Driven Development enforcement for Claude Code"
+      "description": "Automated Test-Driven Development enforcement"
     }
   ]
 }
