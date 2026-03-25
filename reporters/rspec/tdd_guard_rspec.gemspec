@@ -3,7 +3,7 @@
 Gem::Specification.new do |spec|
   spec.name = "tdd-guard-rspec"
   spec.version = "0.1.0"
-  spec.authors = ["Nizar"]
+  spec.authors = ["Hiro-Chiba"]
   spec.summary = "RSpec formatter for TDD Guard - enforces Test-Driven Development principles"
   spec.description = "RSpec formatter that captures test results for TDD Guard validation."
   spec.homepage = "https://github.com/nizos/tdd-guard"
