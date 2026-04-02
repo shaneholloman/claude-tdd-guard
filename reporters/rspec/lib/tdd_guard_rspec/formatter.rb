@@ -73,7 +73,7 @@ module TddGuardRspec
     end
 
     def absolute_path?(path)
-      path.start_with?("/")
+      File.absolute_path?(path)
     end
 
     def cwd_within?(root)

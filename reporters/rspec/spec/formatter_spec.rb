@@ -10,217 +10,254 @@ RSpec.describe TddGuardRspec::Formatter do
   include TddGuardRspecHelpers
 
   let(:output) { StringIO.new }
-  let(:formatter) { described_class.new(output) }
 
-  describe "#initialize" do
-    it "creates empty test results" do
-      expect(formatter.instance_variable_get(:@test_results)).to eq([])
+  # Helper: create a formatter with storage_dir pointing to a tmpdir
+  def create_formatter_in(tmpdir)
+    real_tmpdir = File.realpath(tmpdir)
+    Dir.chdir(real_tmpdir) do
+      ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => real_tmpdir) do
+        yield described_class.new(StringIO.new), real_tmpdir
+      end
     end
+  end
 
-    it "sets default storage dir" do
-      expect(formatter.instance_variable_get(:@storage_dir)).to eq(".claude/tdd-guard/data")
-    end
+  # Helper: run the full flow and return parsed JSON
+  def run_and_read_json(formatter, storage_dir)
+    formatter.close(double("notification"))
+    json_path = File.join(storage_dir, ".claude/tdd-guard/data/test.json")
+    JSON.parse(File.read(json_path))
+  end
+
+  # Helper: extract flat list of tests from JSON data
+  def all_tests(data)
+    data["testModules"].flat_map { |m| m["tests"] }
   end
 
   describe "#example_passed" do
     it "captures passed test result" do
-      example = build_example(
-        description: "does something",
-        full_description: "MyClass does something",
-        file_path: "./spec/my_class_spec.rb"
-      )
-      notification = build_notification(example)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "does something",
+            full_description: "MyClass does something",
+            file_path: "./spec/my_class_spec.rb"
+          )
+          formatter.example_passed(build_notification(example))
 
-      formatter.example_passed(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results.length).to eq(1)
-      expect(results[0]).to eq(
-        "name" => "does something",
-        "fullName" => "spec/my_class_spec.rb::MyClass does something",
-        "state" => "passed"
-      )
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]).to eq(
+            "name" => "does something",
+            "fullName" => "spec/my_class_spec.rb::MyClass does something",
+            "state" => "passed"
+          )
+        end
+      end
     end
   end
 
   describe "#example_failed" do
     it "captures failed test result with error message" do
-      example = build_example(
-        description: "raises error",
-        full_description: "MyClass raises error",
-        file_path: "./spec/my_class_spec.rb"
-      )
-      notification = build_failed_notification(example, message: "expected true, got false")
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "raises error",
+            full_description: "MyClass raises error",
+            file_path: "./spec/my_class_spec.rb"
+          )
+          formatter.example_failed(build_failed_notification(example, message: "expected true, got false"))
 
-      formatter.example_failed(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results.length).to eq(1)
-      expect(results[0]).to eq(
-        "name" => "raises error",
-        "fullName" => "spec/my_class_spec.rb::MyClass raises error",
-        "state" => "failed",
-        "errors" => [{ "message" => "expected true, got false" }]
-      )
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]).to eq(
+            "name" => "raises error",
+            "fullName" => "spec/my_class_spec.rb::MyClass raises error",
+            "state" => "failed",
+            "errors" => [{ "message" => "expected true, got false" }]
+          )
+        end
+      end
     end
   end
 
   describe "#example_pending" do
     it "captures pending test as skipped" do
-      example = build_example(
-        description: "is pending",
-        full_description: "MyClass is pending",
-        file_path: "./spec/my_class_spec.rb"
-      )
-      notification = build_notification(example)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "is pending",
+            full_description: "MyClass is pending",
+            file_path: "./spec/my_class_spec.rb"
+          )
+          formatter.example_pending(build_notification(example))
 
-      formatter.example_pending(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results.length).to eq(1)
-      expect(results[0]["state"]).to eq("skipped")
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]["state"]).to eq("skipped")
+        end
+      end
     end
   end
 
   describe "#close" do
     it "saves empty testModules when no tests ran" do
       Dir.mktmpdir do |tmpdir|
-        storage_dir = File.join(tmpdir, ".claude/tdd-guard/data")
-        formatter.instance_variable_set(:@storage_dir, storage_dir)
-
-        formatter.close(double("notification"))
-
-        json_path = File.join(storage_dir, "test.json")
-        data = JSON.parse(File.read(json_path))
-        expect(data["testModules"]).to eq([])
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["testModules"]).to eq([])
+        end
       end
     end
 
     it "saves results grouped by module to JSON" do
       Dir.mktmpdir do |tmpdir|
-        storage_dir = File.join(tmpdir, ".claude/tdd-guard/data")
-        formatter.instance_variable_set(:@storage_dir, storage_dir)
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          [
+            { desc: "test_one", full: "Model test_one", file: "./spec/model_spec.rb", method: :example_passed },
+            { desc: "test_two", full: "Model test_two", file: "./spec/model_spec.rb", method: :example_failed, error: "Error" },
+            { desc: "test_other", full: "Service test_other", file: "./spec/service_spec.rb", method: :example_passed }
+          ].each do |t|
+            example = build_example(description: t[:desc], full_description: t[:full], file_path: t[:file])
+            if t[:method] == :example_failed
+              formatter.example_failed(build_failed_notification(example, message: t[:error]))
+            else
+              formatter.example_passed(build_notification(example))
+            end
+          end
 
-        formatter.instance_variable_set(:@test_results, [
-          {
-            "name" => "test_one",
-            "fullName" => "spec/model_spec.rb::Model test_one",
-            "state" => "passed"
-          },
-          {
-            "name" => "test_two",
-            "fullName" => "spec/model_spec.rb::Model test_two",
-            "state" => "failed",
-            "errors" => [{ "message" => "Error" }]
-          },
-          {
-            "name" => "test_other",
-            "fullName" => "spec/service_spec.rb::Service test_other",
-            "state" => "passed"
-          }
-        ])
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["testModules"].length).to eq(2)
 
-        formatter.close(double("notification"))
+          model_module = data["testModules"].find { |m| m["moduleId"] == "spec/model_spec.rb" }
+          expect(model_module["tests"].length).to eq(2)
+          expect(model_module["tests"][0]["name"]).to eq("test_one")
 
-        json_path = File.join(storage_dir, "test.json")
-        expect(File.exist?(json_path)).to be true
-
-        data = JSON.parse(File.read(json_path))
-        expect(data).to have_key("testModules")
-        expect(data["testModules"].length).to eq(2)
-
-        model_module = data["testModules"].find { |m| m["moduleId"] == "spec/model_spec.rb" }
-        expect(model_module["tests"].length).to eq(2)
-        expect(model_module["tests"][0]["name"]).to eq("test_one")
-
-        service_module = data["testModules"].find { |m| m["moduleId"] == "spec/service_spec.rb" }
-        expect(service_module["tests"].length).to eq(1)
-        expect(service_module["tests"][0]["name"]).to eq("test_other")
+          service_module = data["testModules"].find { |m| m["moduleId"] == "spec/service_spec.rb" }
+          expect(service_module["tests"].length).to eq(1)
+          expect(service_module["tests"][0]["name"]).to eq("test_other")
+        end
       end
     end
   end
 
   describe "name extraction" do
     it "uses example.description as name" do
-      example = build_example(
-        description: "returns correct value",
-        full_description: "Calculator returns correct value",
-        file_path: "./spec/calculator_spec.rb"
-      )
-      notification = build_notification(example)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "returns correct value",
+            full_description: "Calculator returns correct value",
+            file_path: "./spec/calculator_spec.rb"
+          )
+          formatter.example_passed(build_notification(example))
 
-      formatter.example_passed(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results[0]["name"]).to eq("returns correct value")
+          data = run_and_read_json(formatter, storage_dir)
+          expect(all_tests(data)[0]["name"]).to eq("returns correct value")
+        end
+      end
     end
   end
 
   describe "fullName format" do
     it "uses file_path::full_description as fullName" do
-      example = build_example(
-        description: "works",
-        full_description: "Widget works",
-        file_path: "./spec/widget_spec.rb"
-      )
-      notification = build_notification(example)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "works",
+            full_description: "Widget works",
+            file_path: "./spec/widget_spec.rb"
+          )
+          formatter.example_passed(build_notification(example))
 
-      formatter.example_passed(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results[0]["fullName"]).to eq("spec/widget_spec.rb::Widget works")
+          data = run_and_read_json(formatter, storage_dir)
+          expect(all_tests(data)[0]["fullName"]).to eq("spec/widget_spec.rb::Widget works")
+        end
+      end
     end
   end
 
   describe "path handling" do
     it "strips leading ./ from file path" do
-      example = build_example(
-        description: "test",
-        full_description: "test",
-        file_path: "./spec/foo_spec.rb"
-      )
-      notification = build_notification(example)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "test",
+            full_description: "test",
+            file_path: "./spec/foo_spec.rb"
+          )
+          formatter.example_passed(build_notification(example))
 
-      formatter.example_passed(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results[0]["fullName"]).to start_with("spec/foo_spec.rb")
+          data = run_and_read_json(formatter, storage_dir)
+          expect(all_tests(data)[0]["fullName"]).to start_with("spec/foo_spec.rb")
+        end
+      end
     end
 
     it "handles file path without leading ./" do
-      example = build_example(
-        description: "test",
-        full_description: "test",
-        file_path: "spec/bar_spec.rb"
-      )
-      notification = build_notification(example)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "test",
+            full_description: "test",
+            file_path: "spec/bar_spec.rb"
+          )
+          formatter.example_passed(build_notification(example))
 
-      formatter.example_passed(notification)
-
-      results = formatter.instance_variable_get(:@test_results)
-      expect(results[0]["fullName"]).to eq("spec/bar_spec.rb::test")
+          data = run_and_read_json(formatter, storage_dir)
+          expect(all_tests(data)[0]["fullName"]).to eq("spec/bar_spec.rb::test")
+        end
+      end
     end
   end
 
   describe "storage directory determination" do
     it "uses default relative path when no env var set" do
-      ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => nil) do
-        f = described_class.new(StringIO.new)
-        expect(f.instance_variable_get(:@storage_dir)).to eq(".claude/tdd-guard/data")
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => nil) do
+            formatter = described_class.new(StringIO.new)
+            formatter.close(double("notification"))
+
+            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            expect(File.exist?(json_path)).to be true
+          end
+        end
       end
     end
 
     it "rejects relative path in env var" do
-      ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => "../some/path") do
-        f = described_class.new(StringIO.new)
-        expect(f.instance_variable_get(:@storage_dir)).to eq(".claude/tdd-guard/data")
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => "../some/path") do
+            formatter = described_class.new(StringIO.new)
+            formatter.close(double("notification"))
+
+            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            expect(File.exist?(json_path)).to be true
+            # Should NOT have written to the project root path
+            expect(File.exist?(File.join("../some/path", ".claude/tdd-guard/data", "test.json"))).to be false
+          end
+        end
       end
     end
 
     it "rejects project root when cwd is outside" do
-      ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => "/other/project") do
-        f = described_class.new(StringIO.new)
-        expect(f.instance_variable_get(:@storage_dir)).to eq(".claude/tdd-guard/data")
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => "/other/project") do
+            formatter = described_class.new(StringIO.new)
+            formatter.close(double("notification"))
+
+            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            expect(File.exist?(json_path)).to be true
+          end
+        end
       end
     end
 
@@ -233,8 +270,13 @@ RSpec.describe TddGuardRspec::Formatter do
 
         Dir.chdir(similar_dir) do
           ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => project_dir) do
-            f = described_class.new(StringIO.new)
-            expect(f.instance_variable_get(:@storage_dir)).to eq(".claude/tdd-guard/data")
+            formatter = described_class.new(StringIO.new)
+            formatter.close(double("notification"))
+
+            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            expect(File.exist?(json_path)).to be true
+            # Should NOT have written under the project root
+            expect(File.exist?(File.join(project_dir, ".claude/tdd-guard/data", "test.json"))).to be false
           end
         end
       end
@@ -245,10 +287,11 @@ RSpec.describe TddGuardRspec::Formatter do
         real_tmpdir = File.realpath(tmpdir)
         Dir.chdir(real_tmpdir) do
           ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => real_tmpdir) do
-            f = described_class.new(StringIO.new)
-            expect(f.instance_variable_get(:@storage_dir)).to eq(
-              File.join(real_tmpdir, ".claude/tdd-guard/data")
-            )
+            formatter = described_class.new(StringIO.new)
+            formatter.close(double("notification"))
+
+            json_path = File.join(real_tmpdir, ".claude/tdd-guard/data", "test.json")
+            expect(File.exist?(json_path)).to be true
           end
         end
       end
