@@ -10,6 +10,7 @@ RSpec.describe TddGuardRspec::Formatter do
   include TddGuardRspecHelpers
 
   let(:output) { StringIO.new }
+  let(:default_data_dir) { TddGuardRspec::Formatter::DEFAULT_DATA_DIR }
 
   # Helper: create a formatter with storage_dir pointing to a tmpdir
   def create_formatter_in(tmpdir)
@@ -24,7 +25,7 @@ RSpec.describe TddGuardRspec::Formatter do
   # Helper: run the full flow and return parsed JSON
   def run_and_read_json(formatter, storage_dir)
     formatter.close(double("notification"))
-    json_path = File.join(storage_dir, ".claude/tdd-guard/data/test.json")
+    json_path = File.join(storage_dir, default_data_dir, "test.json")
     JSON.parse(File.read(json_path))
   end
 
@@ -222,7 +223,7 @@ RSpec.describe TddGuardRspec::Formatter do
             formatter = described_class.new(StringIO.new)
             formatter.close(double("notification"))
 
-            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            json_path = File.join(default_data_dir, "test.json")
             expect(File.exist?(json_path)).to be true
           end
         end
@@ -237,10 +238,10 @@ RSpec.describe TddGuardRspec::Formatter do
             formatter = described_class.new(StringIO.new)
             formatter.close(double("notification"))
 
-            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            json_path = File.join(default_data_dir, "test.json")
             expect(File.exist?(json_path)).to be true
             # Should NOT have written to the project root path
-            expect(File.exist?(File.join("../some/path", ".claude/tdd-guard/data", "test.json"))).to be false
+            expect(File.exist?(File.join("../some/path", default_data_dir, "test.json"))).to be false
           end
         end
       end
@@ -254,7 +255,7 @@ RSpec.describe TddGuardRspec::Formatter do
             formatter = described_class.new(StringIO.new)
             formatter.close(double("notification"))
 
-            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            json_path = File.join(default_data_dir, "test.json")
             expect(File.exist?(json_path)).to be true
           end
         end
@@ -273,10 +274,10 @@ RSpec.describe TddGuardRspec::Formatter do
             formatter = described_class.new(StringIO.new)
             formatter.close(double("notification"))
 
-            json_path = File.join(".claude/tdd-guard/data", "test.json")
+            json_path = File.join(default_data_dir, "test.json")
             expect(File.exist?(json_path)).to be true
             # Should NOT have written under the project root
-            expect(File.exist?(File.join(project_dir, ".claude/tdd-guard/data", "test.json"))).to be false
+            expect(File.exist?(File.join(project_dir, default_data_dir, "test.json"))).to be false
           end
         end
       end
@@ -290,7 +291,7 @@ RSpec.describe TddGuardRspec::Formatter do
             formatter = described_class.new(StringIO.new)
             formatter.close(double("notification"))
 
-            json_path = File.join(real_tmpdir, ".claude/tdd-guard/data", "test.json")
+            json_path = File.join(real_tmpdir, default_data_dir, "test.json")
             expect(File.exist?(json_path)).to be true
           end
         end
