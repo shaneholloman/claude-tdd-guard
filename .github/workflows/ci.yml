@@ -180,7 +180,9 @@ jobs:
 
       - name: Install RSpec reporter dependencies
         working-directory: reporters/rspec
-        run: bundle install --path vendor/bundle
+        run: |
+          bundle config set --local path vendor/bundle
+          bundle install
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
