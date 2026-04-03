@@ -32,8 +32,10 @@ module TddGuardRspec
 
     def example_failed(notification)
       example = notification.example
-      errors = [{ "message" => notification.exception.message }]
-      record_example(example, "failed", errors)
+      error = { "message" => notification.exception.message }
+      stack = extract_relevant_stack(notification.exception.backtrace)
+      error["stack"] = stack if stack
+      record_example(example, "failed", [error])
     end
 
     def example_pending(notification)
@@ -107,6 +109,15 @@ module TddGuardRspec
       return "LoadError" unless match
 
       "#{match[1]}: #{match[2].strip}"
+    end
+
+    def extract_relevant_stack(backtrace)
+      return nil unless backtrace
+
+      frame = backtrace.find { |line| line.include?("spec/") && !line.include?("/gems/") }
+      return nil unless frame
+
+      frame.sub(%r{^.*/(?=spec/)}, "").sub(%r{^\./}, "")
     end
 
     def determine_storage_dir

@@ -209,6 +209,90 @@ RSpec.describe TddGuardRspec::Formatter do
     end
   end
 
+  describe "stack field" do
+    it "includes first relevant spec line from backtrace" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "fails",
+            full_description: "MyClass fails",
+            file_path: "./spec/my_class_spec.rb"
+          )
+          backtrace = [
+            "./spec/my_class_spec.rb:5:in `block (2 levels) in <top (required)>'",
+            "/path/to/gems/rspec-core-3.13.0/lib/rspec/core/example.rb:263:in `instance_exec'"
+          ]
+          formatter.example_failed(build_failed_notification(example, message: "error", backtrace: backtrace))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["errors"][0]["stack"]).to eq("spec/my_class_spec.rb:5:in `block (2 levels) in <top (required)>'")
+        end
+      end
+    end
+
+    it "excludes stack when backtrace contains only gem frames" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(description: "fails", full_description: "MyClass fails")
+          backtrace = [
+            "/path/to/gems/rspec-core-3.13.0/lib/rspec/core/example.rb:263:in `instance_exec'",
+            "/path/to/gems/rspec-core-3.13.0/lib/rspec/core/runner.rb:121:in `run_specs'"
+          ]
+          formatter.example_failed(build_failed_notification(example, message: "error", backtrace: backtrace))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["errors"][0]).not_to have_key("stack")
+        end
+      end
+    end
+
+    it "excludes stack when backtrace is nil" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(description: "fails", full_description: "MyClass fails")
+          formatter.example_failed(build_failed_notification(example, message: "error"))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["errors"][0]).not_to have_key("stack")
+        end
+      end
+    end
+
+    it "strips leading ./ from stack frame" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(description: "fails", full_description: "MyClass fails")
+          backtrace = ["./spec/foo_spec.rb:10:in `block'"]
+          formatter.example_failed(build_failed_notification(example, message: "error", backtrace: backtrace))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["errors"][0]["stack"]).to start_with("spec/foo_spec.rb")
+        end
+      end
+    end
+
+    it "extracts spec line from absolute path backtrace" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(description: "fails", full_description: "MyClass fails")
+          backtrace = [
+            "/path/to/gems/rspec-support-3.13.0/lib/rspec/support.rb:110:in `block'",
+            "/private/tmp/my-project/spec/calc_spec.rb:3:in `block (2 levels) in <top (required)>'"
+          ]
+          formatter.example_failed(build_failed_notification(example, message: "error", backtrace: backtrace))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["errors"][0]["stack"]).to eq("spec/calc_spec.rb:3:in `block (2 levels) in <top (required)>'")
+        end
+      end
+    end
+  end
+
   describe "name extraction" do
     it "uses example.description as name" do
       Dir.mktmpdir do |tmpdir|

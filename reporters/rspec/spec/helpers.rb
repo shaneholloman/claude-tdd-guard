@@ -23,8 +23,8 @@ module TddGuardRspecHelpers
   end
 
   # Create a mock failed notification with exception
-  def build_failed_notification(example, message:)
-    exception = instance_double(Exception, message: message)
+  def build_failed_notification(example, message:, backtrace: nil)
+    exception = instance_double(Exception, message: message, backtrace: backtrace)
     notification = instance_double(
       RSpec::Core::Notifications::FailedExampleNotification,
       example: example,
