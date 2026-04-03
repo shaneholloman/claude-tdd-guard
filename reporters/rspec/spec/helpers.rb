@@ -4,7 +4,11 @@ require "rspec/core"
 
 module TddGuardRspecHelpers
   # Create a mock RSpec example with the given attributes
-  def build_example(description:, full_description:, file_path:)
+  def build_example(
+    description: "example",
+    full_description: "Example example",
+    file_path: "./spec/example_spec.rb"
+  )
     instance_double(
       RSpec::Core::Example,
       description: description,

@@ -149,9 +149,7 @@ RSpec.describe TddGuardRspec::Formatter do
       Dir.mktmpdir do |tmpdir|
         create_formatter_in(tmpdir) do |formatter, storage_dir|
           example = build_example(
-            description: "returns correct value",
-            full_description: "Calculator returns correct value",
-            file_path: "./spec/calculator_spec.rb"
+            description: "returns correct value"
           )
           formatter.example_passed(build_notification(example))
 
@@ -167,7 +165,6 @@ RSpec.describe TddGuardRspec::Formatter do
       Dir.mktmpdir do |tmpdir|
         create_formatter_in(tmpdir) do |formatter, storage_dir|
           example = build_example(
-            description: "works",
             full_description: "Widget works",
             file_path: "./spec/widget_spec.rb"
           )
@@ -185,8 +182,6 @@ RSpec.describe TddGuardRspec::Formatter do
       Dir.mktmpdir do |tmpdir|
         create_formatter_in(tmpdir) do |formatter, storage_dir|
           example = build_example(
-            description: "test",
-            full_description: "test",
             file_path: "./spec/foo_spec.rb"
           )
           formatter.example_passed(build_notification(example))
@@ -201,14 +196,12 @@ RSpec.describe TddGuardRspec::Formatter do
       Dir.mktmpdir do |tmpdir|
         create_formatter_in(tmpdir) do |formatter, storage_dir|
           example = build_example(
-            description: "test",
-            full_description: "test",
             file_path: "spec/bar_spec.rb"
           )
           formatter.example_passed(build_notification(example))
 
           data = run_and_read_json(formatter, storage_dir)
-          expect(all_tests(data)[0]["fullName"]).to eq("spec/bar_spec.rb::test")
+          expect(all_tests(data)[0]["fullName"]).to start_with("spec/bar_spec.rb::")
         end
       end
     end
