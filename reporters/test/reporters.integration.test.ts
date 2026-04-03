@@ -118,6 +118,7 @@ describe('Reporters', () => {
         { name: 'go', expected: 'missingImport' },
         { name: 'rust', expected: 'compilation' },
         { name: 'storybook', expected: 'single-import-error.stories' },
+        { name: 'rspec', expected: 'single_import_error_spec.rb' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -194,7 +195,10 @@ describe('Reporters', () => {
         { name: 'go', expected: 'CompilationError' },
         { name: 'rust', expected: 'build' },
         { name: 'storybook', expected: 'play-test' },
-        { name: 'rspec', expected: undefined },
+        {
+          name: 'rspec',
+          expected: 'LoadError: cannot load such file -- non_existent_module',
+        },
       ]
 
       it.each(reporters)(
@@ -320,6 +324,11 @@ describe('Reporters', () => {
         { name: 'go', expected: 'missingImportModule/CompilationError' },
         { name: 'rust', expected: 'compilation::build' },
         { name: 'storybook', expected: 'Calculator Primary play-test' },
+        {
+          name: 'rspec',
+          expected:
+            'single_import_error_spec.rb::LoadError: cannot load such file -- non_existent_module',
+        },
       ]
 
       it.each(reporters)(
@@ -389,6 +398,7 @@ describe('Reporters', () => {
         { name: 'go', expected: 'failed' },
         { name: 'rust', expected: 'failed' },
         { name: 'storybook', expected: 'failed' },
+        { name: 'rspec', expected: 'failed' },
       ]
 
       it.each(reporters)(
@@ -543,6 +553,14 @@ describe('Reporters', () => {
           expected: [
             'Failed to fetch dynamically imported module',
             'single-import-error.stories.js',
+          ],
+        },
+        {
+          name: 'rspec',
+          expected: [
+            'LoadError',
+            'cannot load such file -- non_existent_module',
+            'single_import_error_spec.rb',
           ],
         },
       ]

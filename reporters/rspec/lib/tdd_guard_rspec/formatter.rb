@@ -12,6 +12,8 @@ module TddGuardRspec
       :example_passed,
       :example_failed,
       :example_pending,
+      :message,
+      :dump_summary,
       :close
 
     DEFAULT_DATA_DIR = ".claude/tdd-guard/data"
@@ -19,6 +21,8 @@ module TddGuardRspec
     def initialize(output)
       super(output)
       @test_results = []
+      @load_errors = []
+      @errors_outside = 0
       @storage_dir = determine_storage_dir
     end
 
@@ -36,7 +40,18 @@ module TddGuardRspec
       record_example(notification.example, "skipped")
     end
 
+    def message(notification)
+      msg = notification.message
+      @load_errors << msg if msg.include?("An error occurred while loading")
+    end
+
+    def dump_summary(notification)
+      @errors_outside = notification.errors_outside_of_examples_count
+    end
+
     def close(_notification)
+      add_load_error_results if @test_results.empty? && @errors_outside > 0
+
       modules_map = {}
       @test_results.each do |test|
         module_path = test["fullName"].split("::").first
@@ -61,6 +76,33 @@ module TddGuardRspec
       }
       test["errors"] = errors if errors
       @test_results << test
+    end
+
+    def add_load_error_results
+      @load_errors.each do |error_msg|
+        file_path = extract_file_path(error_msg)
+        error_name = extract_error_name(error_msg)
+        @test_results << {
+          "name" => error_name,
+          "fullName" => "#{file_path}::#{error_name}",
+          "state" => "failed",
+          "errors" => [{ "message" => error_msg.strip }]
+        }
+      end
+    end
+
+    def extract_file_path(error_msg)
+      match = error_msg.match(/An error occurred while loading (.+)\./)
+      return "unknown" unless match
+
+      match[1].sub(%r{^\./}, "").strip
+    end
+
+    def extract_error_name(error_msg)
+      match = error_msg.match(/^(\w+Error):\s*(.+?)$/m)
+      return "LoadError" unless match
+
+      "#{match[1]}: #{match[2].strip}"
     end
 
     def determine_storage_dir

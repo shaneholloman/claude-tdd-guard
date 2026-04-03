@@ -32,4 +32,17 @@ module TddGuardRspecHelpers
     )
     notification
   end
+
+  # Create a mock message notification
+  def build_message_notification(message)
+    instance_double(RSpec::Core::Notifications::MessageNotification, message: message)
+  end
+
+  # Create a mock summary notification
+  def build_summary_notification(errors_outside_of_examples_count:)
+    instance_double(
+      RSpec::Core::Notifications::SummaryNotification,
+      errors_outside_of_examples_count: errors_outside_of_examples_count
+    )
+  end
 end

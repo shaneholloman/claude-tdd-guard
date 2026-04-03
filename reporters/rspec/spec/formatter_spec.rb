@@ -291,4 +291,100 @@ RSpec.describe TddGuardRspec::Formatter do
       end
     end
   end
+
+  describe "load error handling" do
+    let(:load_error_message) do
+      <<~MSG.chomp
+        An error occurred while loading ./spec/my_class_spec.rb.
+        Failure/Error: require "my_class"
+
+        LoadError:
+          cannot load such file -- my_class
+        # ./spec/my_class_spec.rb:3:in `<top (required)>'
+      MSG
+    end
+
+    it "captures load errors as synthetic test failures" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.message(build_message_notification(load_error_message))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 1))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]["state"]).to eq("failed")
+        end
+      end
+    end
+
+    it "extracts file path from load error" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.message(build_message_notification(load_error_message))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 1))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["testModules"][0]["moduleId"]).to eq("spec/my_class_spec.rb")
+        end
+      end
+    end
+
+    it "extracts error name from load error" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.message(build_message_notification(load_error_message))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 1))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["name"]).to eq("LoadError: cannot load such file -- my_class")
+        end
+      end
+    end
+
+    it "includes full error message in errors array" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.message(build_message_notification(load_error_message))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 1))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests[0]["errors"][0]["message"]).to include("cannot load such file -- my_class")
+        end
+      end
+    end
+
+    it "does not create synthetic failures when tests ran normally" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(
+            description: "works",
+            full_description: "MyClass works",
+            file_path: "./spec/my_class_spec.rb"
+          )
+          formatter.example_passed(build_notification(example))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 0))
+
+          data = run_and_read_json(formatter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]["name"]).to eq("works")
+        end
+      end
+    end
+
+    it "ignores non-load-error messages" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.message(build_message_notification("No examples found."))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 0))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["testModules"]).to eq([])
+        end
+      end
+    end
+  end
 end
