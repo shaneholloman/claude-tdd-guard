@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
 import { copyTestArtifacts } from './helpers'
 
+// Use hardcoded absolute path for security when available, fall back to PATH for CI environments
 const bundleBinary =
   ['/usr/local/bin/bundle', '/usr/bin/bundle', '/opt/homebrew/bin/bundle'].find(
     existsSync
