@@ -34,7 +34,7 @@ TDD Guard ensures Claude Code follows Test-Driven Development principles. When y
 ### Requirements
 
 - Node.js 22+
-- A supported test framework (Vitest, Jest, Storybook, pytest, PHPUnit, Go, Rust)
+- A supported test framework (Vitest, Jest, Storybook, pytest, PHPUnit, Go, Rust, RSpec)
 
 ### Installation
 
