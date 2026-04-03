@@ -72,6 +72,7 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 - Rust/cargo support: [@104hp6u](https://github.com/104hp6u)
 - Go support: [@sQVe](https://github.com/sQVe), [@wizzomafizzo](https://github.com/wizzomafizzo)
 - Storybook support: [@akornmeier](https://github.com/akornmeier)
+- Ruby/RSpec support: [@Hiro-Chiba](https://github.com/Hiro-Chiba)
 
 ### Roadmap
 
