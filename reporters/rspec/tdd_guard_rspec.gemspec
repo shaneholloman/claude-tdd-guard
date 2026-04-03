@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.description = "RSpec formatter that captures test results for TDD Guard validation."
   spec.homepage = "https://github.com/nizos/tdd-guard"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 3.3.0"
 
   spec.files = Dir["lib/**/*.rb"]
   spec.require_paths = ["lib"]

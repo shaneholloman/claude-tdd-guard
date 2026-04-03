@@ -4,6 +4,11 @@ import { join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
 import { copyTestArtifacts } from './helpers'
 
+const bundleBinary =
+  ['/usr/local/bin/bundle', '/usr/bin/bundle', '/opt/homebrew/bin/bundle'].find(
+    existsSync
+  ) ?? 'bundle'
+
 export function createRspecReporter(): ReporterConfig {
   const artifactDir = 'rspec'
   const testScenarios = {
@@ -18,29 +23,31 @@ export function createRspecReporter(): ReporterConfig {
     run: (tempDir, scenario: keyof TestScenarios) => {
       copyTestArtifacts(artifactDir, testScenarios, scenario, tempDir)
 
-      // Symlink vendor/bundle from rspec reporter for gem dependencies
-      const reporterVendorPath = join(__dirname, '../../rspec/vendor')
-      const tempVendorPath = join(tempDir, 'vendor')
-      symlinkSync(reporterVendorPath, tempVendorPath)
-
-      // Run rspec with the TDD Guard formatter
-      const rubyBinary = resolveRubyBinary()
-      const rspecPath = join(
-        __dirname,
-        '../../rspec/vendor/bundle/ruby',
-        getRubyVersion(rubyBinary),
-        'bin/rspec'
+      // Symlink vendor/bundle, Gemfile, and gemspec from rspec reporter
+      const reporterDir = join(__dirname, '../../rspec')
+      symlinkSync(join(reporterDir, 'vendor'), join(tempDir, 'vendor'))
+      symlinkSync(join(reporterDir, 'Gemfile'), join(tempDir, 'Gemfile'))
+      symlinkSync(
+        join(reporterDir, 'Gemfile.lock'),
+        join(tempDir, 'Gemfile.lock')
       )
-      const formatterLibPath = join(__dirname, '../../rspec/lib')
+      symlinkSync(
+        join(reporterDir, 'tdd_guard_rspec.gemspec'),
+        join(tempDir, 'tdd_guard_rspec.gemspec')
+      )
+
+      // Run rspec via bundle exec, letting Bundler handle path resolution
+      const formatterLibPath = join(reporterDir, 'lib')
       const testFile = testScenarios[scenario]
 
       spawnSync(
-        rubyBinary,
+        bundleBinary,
         [
+          'exec',
+          'rspec',
+          testFile,
           '-I',
           formatterLibPath,
-          rspecPath,
-          testFile,
           '--format',
           'TddGuardRspec::Formatter',
         ],
@@ -49,11 +56,7 @@ export function createRspecReporter(): ReporterConfig {
           env: {
             ...process.env,
             TDD_GUARD_PROJECT_ROOT: tempDir,
-            GEM_PATH: join(
-              __dirname,
-              '../../rspec/vendor/bundle/ruby',
-              getRubyVersion(rubyBinary)
-            ),
+            BUNDLE_PATH: 'vendor/bundle',
           },
           stdio: 'pipe',
           encoding: 'utf8',
@@ -61,25 +64,4 @@ export function createRspecReporter(): ReporterConfig {
       )
     },
   }
-}
-
-function resolveRubyBinary(): string {
-  const knownPaths = [
-    '/usr/local/bin/ruby',
-    '/usr/bin/ruby',
-    '/opt/homebrew/bin/ruby',
-  ]
-  return knownPaths.find(existsSync) ?? 'ruby'
-}
-
-function getRubyVersion(rubyBinary: string): string {
-  const result = spawnSync(
-    rubyBinary,
-    ['-e', 'puts RbConfig::CONFIG["ruby_version"]'],
-    {
-      stdio: 'pipe',
-      encoding: 'utf8',
-    }
-  )
-  return result.stdout.trim() || '2.6.0'
 }
