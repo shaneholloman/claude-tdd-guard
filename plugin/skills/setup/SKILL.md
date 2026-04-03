@@ -23,6 +23,7 @@ Set up TDD Guard for the current project. Your goal is to:
 | PHPUnit   | tdd-guard/phpunit                                        | Packagist  |
 | Go        | github.com/nizos/tdd-guard/reporters/go/cmd/tdd-guard-go | go install |
 | Rust      | tdd-guard-rust                                           | crates.io  |
+| RSpec     | tdd-guard-rspec                                          | RubyGems   |
 
 ## Reporter configuration
 
@@ -93,6 +94,16 @@ go test -json ./... 2>&1 | tdd-guard-go -project-root /absolute/path/to/project
 
 ```bash
 cargo nextest run 2>&1 | tdd-guard-rust --project-root /absolute/path/to/project --passthrough
+```
+
+**RSpec** — Add the formatter to `.rspec` and set `TDD_GUARD_PROJECT_ROOT` environment variable to the absolute project root path.
+
+```
+--format TddGuardRspec::Formatter
+```
+
+```bash
+export TDD_GUARD_PROJECT_ROOT="/absolute/path/to/project"
 ```
 
 ## Guidelines
