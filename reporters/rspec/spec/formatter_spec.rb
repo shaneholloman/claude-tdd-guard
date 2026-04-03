@@ -109,6 +109,7 @@ RSpec.describe TddGuardRspec::Formatter do
         create_formatter_in(tmpdir) do |formatter, storage_dir|
           data = run_and_read_json(formatter, storage_dir)
           expect(data["testModules"]).to eq([])
+          expect(data["reason"]).to eq("passed")
         end
       end
     end
@@ -139,6 +140,70 @@ RSpec.describe TddGuardRspec::Formatter do
           service_module = data["testModules"].find { |m| m["moduleId"] == "spec/service_spec.rb" }
           expect(service_module["tests"].length).to eq(1)
           expect(service_module["tests"][0]["name"]).to eq("test_other")
+        end
+      end
+    end
+  end
+
+  describe "reason field" do
+    it "reports passed when all tests pass" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          %w[test_one test_two].each do |desc|
+            example = build_example(description: desc, full_description: "MyClass #{desc}")
+            formatter.example_passed(build_notification(example))
+          end
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("passed")
+        end
+      end
+    end
+
+    it "reports failed when one test fails" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          passing = build_example(description: "passes", full_description: "MyClass passes")
+          formatter.example_passed(build_notification(passing))
+
+          failing = build_example(description: "fails", full_description: "MyClass fails")
+          formatter.example_failed(build_failed_notification(failing, message: "expected true"))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("failed")
+        end
+      end
+    end
+
+    it "reports failed when all tests fail" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          %w[test_one test_two].each do |desc|
+            example = build_example(description: desc, full_description: "MyClass #{desc}")
+            formatter.example_failed(build_failed_notification(example, message: "error"))
+          end
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("failed")
+        end
+      end
+    end
+
+    it "reports failed when load errors produce synthetic failures" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          load_error = <<~MSG.chomp
+            An error occurred while loading ./spec/my_class_spec.rb.
+            Failure/Error: require "my_class"
+
+            LoadError:
+              cannot load such file -- my_class
+          MSG
+          formatter.message(build_message_notification(load_error))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 1))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("failed")
         end
       end
     end

@@ -592,7 +592,7 @@ describe('Reporters', () => {
         { name: 'go', expected: 'passed' },
         { name: 'rust', expected: 'passed' },
         { name: 'storybook', expected: 'passed' },
-        { name: 'rspec', expected: undefined },
+        { name: 'rspec', expected: 'passed' },
       ]
 
       it.each(reporters)(
@@ -616,7 +616,7 @@ describe('Reporters', () => {
         { name: 'go', expected: 'failed' },
         { name: 'rust', expected: 'failed' },
         { name: 'storybook', expected: 'failed' },
-        { name: 'rspec', expected: undefined },
+        { name: 'rspec', expected: 'failed' },
       ]
 
       it.each(reporters)(
@@ -640,7 +640,7 @@ describe('Reporters', () => {
         { name: 'go', expected: 'failed' },
         { name: 'rust', expected: 'failed' },
         { name: 'storybook', expected: 'failed' },
-        { name: 'rspec', expected: undefined },
+        { name: 'rspec', expected: 'failed' },
       ]
 
       it.each(reporters)(
