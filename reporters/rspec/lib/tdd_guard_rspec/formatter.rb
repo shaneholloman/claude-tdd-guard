@@ -9,6 +9,7 @@ module TddGuardRspec
   # Mirrors the pytest reporter's single-class architecture.
   class Formatter < RSpec::Core::Formatters::BaseFormatter
     RSpec::Core::Formatters.register self,
+      :start,
       :example_passed,
       :example_failed,
       :example_pending,
@@ -23,7 +24,13 @@ module TddGuardRspec
       @test_results = []
       @load_errors = []
       @errors_outside = 0
+      @expected_count = 0
       @storage_dir = determine_storage_dir
+    end
+
+    def start(notification)
+      super
+      @expected_count = notification.count
     end
 
     def example_passed(notification)
@@ -62,9 +69,16 @@ module TddGuardRspec
       end
 
       has_failures = @test_results.any? { |t| t["state"] == "failed" }
+      reason = if has_failures
+                 "failed"
+               elsif @expected_count > 0 && @test_results.length < @expected_count
+                 "interrupted"
+               else
+                 "passed"
+               end
       result = {
         "testModules" => modules_map.values,
-        "reason" => has_failures ? "failed" : "passed"
+        "reason" => reason
       }
 
       FileUtils.mkdir_p(@storage_dir)

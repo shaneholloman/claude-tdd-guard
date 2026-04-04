@@ -189,6 +189,66 @@ RSpec.describe TddGuardRspec::Formatter do
       end
     end
 
+    it "reports interrupted when fewer results than expected" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.start(build_start_notification(count: 5))
+
+          %w[test_one test_two].each do |desc|
+            example = build_example(description: desc, full_description: "MyClass #{desc}")
+            formatter.example_passed(build_notification(example))
+          end
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("interrupted")
+        end
+      end
+    end
+
+    it "reports failed not interrupted when failures exist with fewer results" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.start(build_start_notification(count: 5))
+
+          passing = build_example(description: "passes", full_description: "MyClass passes")
+          formatter.example_passed(build_notification(passing))
+
+          failing = build_example(description: "fails", full_description: "MyClass fails")
+          formatter.example_failed(build_failed_notification(failing, message: "expected true"))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("failed")
+        end
+      end
+    end
+
+    it "reports passed when all expected tests complete" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.start(build_start_notification(count: 2))
+
+          %w[test_one test_two].each do |desc|
+            example = build_example(description: desc, full_description: "MyClass #{desc}")
+            formatter.example_passed(build_notification(example))
+          end
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("passed")
+        end
+      end
+    end
+
+    it "reports passed when expected count is zero" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          formatter.start(build_start_notification(count: 0))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data["reason"]).to eq("passed")
+        end
+      end
+    end
+
     it "reports failed when load errors produce synthetic failures" do
       Dir.mktmpdir do |tmpdir|
         create_formatter_in(tmpdir) do |formatter, storage_dir|

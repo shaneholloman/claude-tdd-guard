@@ -45,4 +45,12 @@ module TddGuardRspecHelpers
       errors_outside_of_examples_count: errors_outside_of_examples_count
     )
   end
+
+  # Create a mock start notification
+  def build_start_notification(count:)
+    instance_double(
+      RSpec::Core::Notifications::StartNotification,
+      count: count
+    )
+  end
 end
