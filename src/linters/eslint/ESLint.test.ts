@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, test, expect, beforeEach } from 'vitest'
 import { ESLint } from './ESLint'
 import { join } from 'path'
 import { LintResult } from '../../contracts/schemas/lintSchemas'
@@ -82,27 +82,15 @@ describe('ESLint', () => {
   })
 
   describe('platform-specific shell option', () => {
-    let originalPlatform: PropertyDescriptor | undefined
-
-    beforeEach(() => {
-      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
-      vi.resetModules()
-    })
-
-    afterEach(() => {
-      if (originalPlatform) {
-        Object.defineProperty(process, 'platform', originalPlatform)
-      }
-      vi.clearAllMocks()
-    })
-
     test('sets shell option to true on Windows', async () => {
       // Windows needs shell: true to execute 'npx' (.cmd/.bat files)
-      await testShellOption('win32', true)
+      const { options } = await lintOnPlatform('win32')
+      expect(options?.shell).toBe(true)
     })
 
     test('sets shell option to false on non-Windows platforms', async () => {
-      await testShellOption('darwin', false)
+      const { options } = await lintOnPlatform('darwin')
+      expect(options?.shell).toBe(false)
     })
   })
 
@@ -155,29 +143,24 @@ describe('ESLint', () => {
   })
 })
 
-// Test helper function
-async function testShellOption(platform: string, expectedShell: boolean) {
-  // Set platform to test platform-specific behavior
+async function lintOnPlatform(
+  platform: 'win32' | 'darwin' | 'linux'
+): Promise<{ options: { shell: boolean } | undefined }> {
+  const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
   Object.defineProperty(process, 'platform', { value: platform })
 
-  let capturedOptions: { shell?: boolean } | undefined
+  let options: { shell: boolean } | undefined
+  const fakeRun = async (_args: string[], opts: { shell: boolean }) => {
+    options = opts
+    return { stdout: '[]', stderr: '' }
+  }
 
-  // Mock util.promisify to capture the options passed to execFile
-  vi.doMock('util', () => ({
-    promisify:
-      () =>
-      async (_cmd: string, _args: string[], options?: { shell?: boolean }) => {
-        capturedOptions = options
-        return { stdout: '[]', stderr: '' }
-      },
-  }))
-
-  // Re-import ESLint after mocking
-  const { ESLint: MockedESLint } = await import('./ESLint')
-  const mockedLinter = new MockedESLint()
-
-  await mockedLinter.lint(['src/file.ts'])
-
-  expect(capturedOptions).toBeDefined()
-  expect(capturedOptions!.shell).toBe(expectedShell)
+  try {
+    await new ESLint(fakeRun).lint(['src/file.ts'])
+    return { options }
+  } finally {
+    if (originalPlatform) {
+      Object.defineProperty(process, 'platform', originalPlatform)
+    }
+  }
 }

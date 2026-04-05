@@ -4,19 +4,22 @@ import {
   ESLintResult,
   ESLintMessage,
 } from '../../contracts/schemas/lintSchemas'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import { Linter } from '../Linter'
-
-const execFileAsync = promisify(execFile)
+import { runEslint, RunEslint } from './runEslint'
 
 export class ESLint implements Linter {
+  private readonly run: RunEslint
+
+  constructor(run: RunEslint = runEslint) {
+    this.run = run
+  }
+
   async lint(filePaths: string[], configPath?: string): Promise<LintResult> {
     const timestamp = new Date().toISOString()
     const args = buildArgs(filePaths, configPath)
 
     try {
-      await execFileAsync('npx', args, { shell: process.platform === 'win32' })
+      await this.run(args, { shell: process.platform === 'win32' })
       return createLintData(timestamp, filePaths, [])
     } catch (error) {
       if (!isExecError(error)) throw error
