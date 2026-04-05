@@ -77,9 +77,7 @@ describe('StorybookReporter', () => {
 
     it('includes test cases', async () => {
       const context1 = passedStoryContext()
-      const context2 = passedStoryContext({
-        storyExport: { name: 'Secondary' },
-      })
+      const context2 = passedStoryContext({ name: 'Secondary' })
       await reporter.onStoryResult(context1)
       await reporter.onStoryResult(context2)
       await reporter.onComplete()
