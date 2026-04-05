@@ -43,7 +43,7 @@ export default {
   test: {
     reporters: [
       'default',
-      ['${reporterPath}', '${tempDir}']
+      ['${reporterPath}', { projectRoot: '${tempDir}' }]
     ]
   }
 };
