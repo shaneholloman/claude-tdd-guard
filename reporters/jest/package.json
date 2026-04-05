@@ -31,6 +31,7 @@
     "@jest/reporters": "^30.0.5",
     "@jest/test-result": "^30.0.5",
     "@jest/types": "^30.0.5",
+    "@types/node": "^25.1.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.2"
   }
