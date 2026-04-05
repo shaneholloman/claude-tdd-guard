@@ -16,6 +16,7 @@
     "paths": {
       "@testUtils": ["./test/utils/index.ts"]
     },
+    "ignoreDeprecations": "6.0",
     "types": ["node", "vitest/globals"],
     "sourceMap": false,
     "declaration": true,

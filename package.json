@@ -97,7 +97,7 @@
     "prettier": "^3.8.1",
     "tdd-guard-vitest": "*",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.2"
   },
   "overrides": {
