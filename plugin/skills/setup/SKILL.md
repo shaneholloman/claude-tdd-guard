@@ -29,12 +29,13 @@ Set up TDD Guard for the current project. Your goal is to:
 
 All reporters write test results to `.claude/tdd-guard/data/test.json` relative to the project root.
 
-**Vitest** — Add `VitestReporter` to the `reporters` array with project root path as constructor parameter.
+**Vitest** — Add the reporter entry to the `reporters` array with `projectRoot` in the options object.
 
 ```typescript
-import { VitestReporter } from 'tdd-guard-vitest'
-
-reporters: ['default', new VitestReporter('/absolute/path/to/project')]
+reporters: [
+  'default',
+  ['tdd-guard-vitest', { projectRoot: '/absolute/path/to/project' }],
+]
 ```
 
 **Jest** — Add reporter entry to the `reporters` array with `projectRoot` option.

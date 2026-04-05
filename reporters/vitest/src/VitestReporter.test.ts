@@ -43,7 +43,7 @@ describe('VitestReporter', () => {
     expect(reporter['storage']).toBeInstanceOf(FileStorage)
   })
 
-  it('uses FileStorage when no storage provided', async () => {
+  it('persists test output through injected FileStorage', async () => {
     const localSut = setupVitestReporter({ type: 'file' })
 
     expect(localSut.reporter['storage']).toBeInstanceOf(FileStorage)
@@ -59,29 +59,27 @@ describe('VitestReporter', () => {
     localSut.cleanup()
   })
 
-  it('accepts Storage instance in constructor', () => {
+  it('uses storage provided in options', () => {
     const storage = new MemoryStorage()
-    const reporter = new VitestReporter(storage)
+    const reporter = new VitestReporter({ storage })
     expect(reporter['storage']).toBe(storage)
   })
 
-  it('accepts root path string in constructor', () => {
-    const rootPath = '/some/project/root'
-    const reporter = new VitestReporter(rootPath)
-    expect(reporter['storage']).toBeInstanceOf(FileStorage)
-    // Verify the storage is configured with the correct path
-    const fileStorage = reporter['storage'] as FileStorage
-    const config = fileStorage['config'] as Config
-    const expectedDataDir = join(rootPath, ...DEFAULT_DATA_DIR.split('/'))
-    expect(config.dataDir).toBe(expectedDataDir)
+  it('uses storage provided in options even when projectRoot is also set', () => {
+    const storage = new MemoryStorage()
+    const reporter = new VitestReporter({
+      storage,
+      projectRoot: '/some/project/root',
+    })
+    expect(reporter['storage']).toBe(storage)
   })
 
-  it('uses FileStorage when receiving empty options object from Vitest', () => {
+  it('uses FileStorage when options is empty', () => {
     const reporter = new VitestReporter({})
     expect(reporter['storage']).toBeInstanceOf(FileStorage)
   })
 
-  it('uses FileStorage with projectRoot from options object', () => {
+  it('uses FileStorage configured with projectRoot provided in options', () => {
     const rootPath = '/some/project/root'
     const reporter = new VitestReporter({ projectRoot: rootPath })
     expect(reporter['storage']).toBeInstanceOf(FileStorage)
@@ -384,7 +382,7 @@ describe('VitestReporter', () => {
 
 function setupVitestReporter(options?: { type: 'file' | 'memory' }) {
   const { storage, cleanup } = createTestStorage(options?.type)
-  const reporter = new VitestReporter(storage)
+  const reporter = new VitestReporter({ storage })
 
   const collectAndGetSaved = async (
     items: Array<TestModule | TestCase>

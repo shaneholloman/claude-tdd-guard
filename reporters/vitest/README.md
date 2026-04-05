@@ -22,37 +22,34 @@ Add the reporter to your `vitest.config.ts`:
 
 ```typescript
 import { defineConfig } from 'vitest/config'
-import { VitestReporter } from 'tdd-guard-vitest'
 
 export default defineConfig({
   test: {
-    reporters: ['default', new VitestReporter()],
+    reporters: ['default', ['tdd-guard-vitest']],
   },
 })
 ```
 
 ### Workspace/Monorepo Configuration
 
-For workspaces or monorepos, pass the project root path to the reporter:
+For workspaces or monorepos, pass the project root path in the reporter options:
 
 ```typescript
 // vitest.config.ts in project root
 import { defineConfig } from 'vitest/config'
-import { VitestReporter } from 'tdd-guard-vitest'
 import path from 'path'
 
 export default defineConfig({
   test: {
-    reporters: ['default', new VitestReporter(path.resolve(__dirname))],
+    reporters: [
+      'default',
+      ['tdd-guard-vitest', { projectRoot: path.resolve(__dirname) }],
+    ],
   },
 })
 ```
 
-If your vitest config is in a workspace subdirectory, pass the absolute path to your project root:
-
-```typescript
-new VitestReporter('/Users/username/projects/my-app')
-```
+If your vitest config is in a workspace subdirectory, specify the absolute path to your project root in the options, for example `{ projectRoot: '/Users/username/projects/my-app' }`.
 
 ## More Information
 

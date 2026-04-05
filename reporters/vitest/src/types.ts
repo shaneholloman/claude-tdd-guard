@@ -5,6 +5,12 @@ import type {
   TestCase,
 } from 'vitest/node'
 import type { SerializedError } from '@vitest/utils'
+import type { Storage } from 'tdd-guard'
+
+export interface VitestReporterOptions {
+  storage?: Storage
+  projectRoot?: string
+}
 
 export type ModuleDataMap = Map<string, CollectedModuleData>
 
