@@ -42,13 +42,15 @@ process.on('exit', () => {
 
 ### Workspace/Monorepo Configuration
 
-For workspaces or monorepos, pass the project root path to the reporter:
+For workspaces or monorepos, pass the project root path in the reporter options:
 
 ```typescript
 import { StorybookReporter } from 'tdd-guard-storybook'
 import path from 'path'
 
-const reporter = new StorybookReporter(path.resolve(__dirname, '../..'))
+const reporter = new StorybookReporter({
+  projectRoot: path.resolve(__dirname, '../..'),
+})
 
 module.exports = {
   async postVisit(page, context) {
@@ -61,11 +63,7 @@ process.on('exit', () => {
 })
 ```
 
-If your test-runner config is in a subdirectory, pass the absolute path to your project root:
-
-```typescript
-new StorybookReporter('/Users/username/projects/my-app')
-```
+If your test-runner config is in a subdirectory, specify the absolute path to your project root in the options, for example `{ projectRoot: '/Users/username/projects/my-app' }`.
 
 ## How It Works
 

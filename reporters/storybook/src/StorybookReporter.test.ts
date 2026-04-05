@@ -15,28 +15,27 @@ describe('StorybookReporter', () => {
     expect(reporter['storage']).toBeInstanceOf(FileStorage)
   })
 
-  it('accepts Storage instance in constructor', () => {
+  it('uses storage provided in options', () => {
     const storage = new MemoryStorage()
-    const reporter = new StorybookReporter(storage)
+    const reporter = new StorybookReporter({ storage })
     expect(reporter['storage']).toBe(storage)
   })
 
-  it('accepts root path string in constructor', () => {
-    const rootPath = '/some/project/root'
-    const reporter = new StorybookReporter(rootPath)
-    expect(reporter['storage']).toBeInstanceOf(FileStorage)
-    const fileStorage = reporter['storage'] as FileStorage
-    const config = fileStorage['config'] as Config
-    const expectedDataDir = join(rootPath, ...DEFAULT_DATA_DIR.split('/'))
-    expect(config.dataDir).toBe(expectedDataDir)
+  it('uses storage provided in options even when projectRoot is also set', () => {
+    const storage = new MemoryStorage()
+    const reporter = new StorybookReporter({
+      storage,
+      projectRoot: '/some/project/root',
+    })
+    expect(reporter['storage']).toBe(storage)
   })
 
-  it('uses FileStorage when receiving empty options object', () => {
+  it('uses FileStorage when options is empty', () => {
     const reporter = new StorybookReporter({})
     expect(reporter['storage']).toBeInstanceOf(FileStorage)
   })
 
-  it('uses FileStorage with projectRoot from options object', () => {
+  it('uses FileStorage configured with projectRoot provided in options', () => {
     const rootPath = '/some/project/root'
     const reporter = new StorybookReporter({ projectRoot: rootPath })
     expect(reporter['storage']).toBeInstanceOf(FileStorage)
@@ -52,7 +51,7 @@ describe('StorybookReporter', () => {
 
     beforeEach(() => {
       storage = new MemoryStorage()
-      reporter = new StorybookReporter(storage)
+      reporter = new StorybookReporter({ storage })
     })
 
     it('saves output as valid JSON', async () => {
@@ -136,7 +135,7 @@ describe('StorybookReporter', () => {
 
     beforeEach(() => {
       storage = new MemoryStorage()
-      reporter = new StorybookReporter(storage)
+      reporter = new StorybookReporter({ storage })
     })
 
     it.each([
@@ -156,7 +155,7 @@ describe('StorybookReporter', () => {
 
   it('handles empty test runs', async () => {
     const storage = new MemoryStorage()
-    const reporter = new StorybookReporter(storage)
+    const reporter = new StorybookReporter({ storage })
 
     await reporter.onComplete()
 
@@ -171,7 +170,7 @@ describe('StorybookReporter', () => {
 
     beforeEach(() => {
       storage = new MemoryStorage()
-      reporter = new StorybookReporter(storage)
+      reporter = new StorybookReporter({ storage })
     })
 
     it('reports "passed" when all tests pass', async () => {
