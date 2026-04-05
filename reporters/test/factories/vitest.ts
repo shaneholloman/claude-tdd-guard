@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
 import { copyTestArtifacts, getReporterPath } from './helpers'
 
@@ -25,8 +25,12 @@ export function createVitestReporter(): ReporterConfig {
         createVitestConfig(tempDir)
       )
 
-      // Run Vitest
-      const vitestPath = require.resolve('vitest/vitest.mjs')
+      // vitest.mjs is declared as bin but not in the package's `exports`,
+      // so resolve it via the package.json path instead.
+      const vitestPath = join(
+        dirname(require.resolve('vitest/package.json')),
+        'vitest.mjs'
+      )
       spawnSync(process.execPath, [vitestPath, 'run', '--no-coverage'], {
         cwd: tempDir,
         env: { ...process.env, CI: 'true' },

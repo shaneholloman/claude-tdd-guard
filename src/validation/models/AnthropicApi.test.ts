@@ -99,14 +99,12 @@ function createSut(apiKey?: string, modelVersion?: string) {
     content: [{ text: 'Model response' }],
   })
 
+  class MockAnthropic {
+    messages = { create: mockCreate }
+  }
   const mockAnthropicConstructor = vi.mocked(Anthropic)
   mockAnthropicConstructor.mockImplementation(
-    () =>
-      ({
-        messages: {
-          create: mockCreate,
-        },
-      }) as unknown as Anthropic
+    MockAnthropic as unknown as typeof Anthropic
   )
 
   const config = new Config({ anthropicApiKey: apiKey, modelVersion })
