@@ -13,7 +13,7 @@ require "open3"
 # the output format of its internal ExceptionPresenter. The parser in
 # TddGuardRspec::Formatter depends on that format, so a change there will cause
 # this test to fail loudly rather than silently drop data.
-RSpec.describe "unhandled errors integration", :integration do
+RSpec.describe "unhandled errors integration" do
   let(:repo_lib) { File.expand_path("../lib", __dir__) }
 
   def run_rspec(tmpdir, spec_body)
