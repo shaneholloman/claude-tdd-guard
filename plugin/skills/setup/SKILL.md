@@ -1,5 +1,5 @@
 ---
-description: Set up TDD Guard for the current project. Detects the test framework, installs the appropriate reporter, and configures it.
+description: Set up or update TDD Guard for the current project. Detects the test framework, installs or updates the matching reporter, and configures or migrates its configuration to match the current specification.
 disable-model-invocation: true
 allowed-tools: [Read, Glob, Grep]
 ---
@@ -9,8 +9,8 @@ allowed-tools: [Read, Glob, Grep]
 Set up TDD Guard for the current project. Your goal is to:
 
 1. Identify the test framework(s) used in this project
-2. Install the matching TDD Guard reporter
-3. Configure the reporter in the test framework's config
+2. Install the matching TDD Guard reporter, or update it if already present
+3. Configure the reporter, or migrate an existing configuration to match the current specification
 
 ## Reporter packages
 
@@ -119,20 +119,20 @@ export TDD_GUARD_PROJECT_ROOT="/absolute/path/to/project"
 
 ## Guidelines
 
-Your scope is limited to installing and configuring a TDD Guard reporter. Do not make changes beyond that.
+Your scope is limited to installing, updating, configuring, and migrating a TDD Guard reporter. Do not make changes beyond that.
 
 - **Always use absolute paths** when configuring the project root in reporters.
-- **Do not install, update, or modify test frameworks**, build tools, or any other project dependencies. Only install the TDD Guard reporter itself.
-- **Do not modify existing test configuration** beyond adding the reporter. If existing configuration makes it difficult to add the reporter cleanly, inform the user and let them decide.
-- **If a TDD Guard reporter is already configured**, inform the user and stop.
+- **Do not install, update, or modify test frameworks**, build tools, or any other project dependencies. Only install or update the TDD Guard reporter itself.
+- **Do not modify existing test configuration** beyond the TDD Guard reporter entry. Migrate any drifted reporter configuration to match the current specification, preserving the user's project root value and leaving unrelated entries untouched. If the existing configuration cannot be migrated without guessing — for example, because it is wrapped in user-defined code or intermingled with custom logic — inform the user and let them decide.
+- **If a TDD Guard reporter is already installed and its configuration matches this skill's specification**, inform the user that everything is up to date and stop.
 - **If multiple frameworks are detected**, ask the user which to configure.
 - **If something goes wrong or is unclear**, inform the user rather than attempting to fix it. Do not install additional packages or make extra changes to resolve issues.
 
 ## After setup
 
-Once complete, inform the user that:
+Once complete, inform the user of what was done and that:
 
-- TDD Guard is now active and will validate changes against TDD principles
+- TDD Guard validates changes against TDD principles
 - They can type `tdd-guard off` / `tdd-guard on` to toggle it mid-session
 - They can customize validation rules by editing `.claude/tdd-guard/data/instructions.md`
 - More help and configuration options are available at https://github.com/nizos/tdd-guard
