@@ -135,27 +135,28 @@ Install the [tdd-guard-storybook](https://www.npmjs.com/package/tdd-guard-storyb
 npm install --save-dev tdd-guard-storybook
 ```
 
-Add to your `.storybook/test-runner.js`:
+Add to your `.storybook/test-runner.ts`:
 
-```javascript
-const { getJestConfig } = require('@storybook/test-runner')
-const { StorybookReporter } = require('tdd-guard-storybook')
+```typescript
+import { StorybookReporter } from 'tdd-guard-storybook'
+import path from 'path'
+
+const reporter = new StorybookReporter({
+  projectRoot: path.resolve(__dirname, '..'),
+})
 
 module.exports = {
-  ...getJestConfig(),
-  reporters: [
-    'default',
-    [
-      StorybookReporter,
-      {
-        projectRoot: '/Users/username/projects/my-app',
-      },
-    ],
-  ],
+  async postVisit(page, context) {
+    await reporter.onStoryResult(context)
+  },
 }
+
+process.on('exit', () => {
+  reporter.onComplete()
+})
 ```
 
-**Note:** Storybook test-runner uses Jest under the hood, so the reporter integrates via Jest's reporter API. Specify the project root path when your Storybook config is not at the project root. See the [Storybook reporter configuration](../reporters/storybook/README.md#configuration) for more details.
+**Note:** The reporter is constructed directly in your `.storybook/test-runner.ts` and wired into Storybook test-runner's `postVisit` hook. Specify the project root path when your Storybook config is not at the project root. See the [Storybook reporter configuration](../reporters/storybook/README.md#configuration) for more details.
 
 **Tip:** For Storybook 10+ with Vite-based frameworks, consider using [`@storybook/addon-vitest`](https://storybook.js.org/docs/writing-tests/integrations/vitest-addon) instead. This runs Storybook tests through Vitest, allowing you to use the `tdd-guard-vitest` reporter for faster test execution. See [Storybook with Vitest Addon](storybook-vitest-addon.md) for setup instructions.
 

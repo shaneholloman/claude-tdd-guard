@@ -47,15 +47,25 @@ reporters: [
 ]
 ```
 
-**Storybook** — Add `StorybookReporter` to the `reporters` array in `.storybook/test-runner.js` with `projectRoot` option.
+**Storybook** — Construct `StorybookReporter` in `.storybook/test-runner.ts` and wire it into the `postVisit` hook.
 
-```javascript
-const { StorybookReporter } = require('tdd-guard-storybook')
+```typescript
+// .storybook/test-runner.ts
+import { StorybookReporter } from 'tdd-guard-storybook'
 
-reporters: [
-  'default',
-  [StorybookReporter, { projectRoot: '/absolute/path/to/project' }],
-]
+const reporter = new StorybookReporter({
+  projectRoot: '/absolute/path/to/project',
+})
+
+module.exports = {
+  async postVisit(page, context) {
+    await reporter.onStoryResult(context)
+  },
+}
+
+process.on('exit', () => {
+  reporter.onComplete()
+})
 ```
 
 **pytest** — Set `tdd_guard_project_root` in pytest config (`pyproject.toml`, `pytest.ini`, or `setup.cfg`).
