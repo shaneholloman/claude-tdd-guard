@@ -1,6 +1,9 @@
 ARG RUBY_VERSION=3.3.6
+ARG RUST_VERSION=1.94.1
 
 FROM ruby:${RUBY_VERSION}-slim-bookworm AS ruby-source
+
+FROM rust:${RUST_VERSION}-bookworm AS rust-source
 
 FROM node:22
 
@@ -12,7 +15,6 @@ ARG COMPOSER_VERSION=2.8.10
 ARG GIT_DELTA_VERSION=0.18.2
 ARG ZSH_IN_DOCKER_VERSION=1.2.1
 ARG GO_VERSION=1.24.0
-ARG RUST_VERSION=1.89.0
 
 # Install basic development tools and iptables/ipset
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -147,14 +149,17 @@ RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/i
 ENV RUSTUP_HOME=/opt/rust/rustup
 ENV CARGO_HOME=/opt/rust/cargo
 ENV PATH="${CARGO_HOME}/bin:${PATH}"
-RUN mkdir -p /opt/rust && \
-    chown node:node /opt/rust && \
-    su node -c "export RUSTUP_HOME=${RUSTUP_HOME} CARGO_HOME=${CARGO_HOME} && \
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
-        sh -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal --no-modify-path && \
-        ${CARGO_HOME}/bin/rustup component add rustfmt clippy && \
-        ${CARGO_HOME}/bin/cargo install cargo-nextest --locked" && \
-    chmod -R go+rX /opt/rust
+COPY --from=rust-source /usr/local/cargo /opt/rust/cargo
+COPY --from=rust-source /usr/local/rustup /opt/rust/rustup
+RUN chown -R node:node /opt/rust && \
+    ARCH=$(dpkg --print-architecture) && \
+    case ${ARCH} in \
+        amd64) NEXTEST_URL=https://get.nexte.st/latest/linux ;; \
+        arm64) NEXTEST_URL=https://get.nexte.st/latest/linux-arm ;; \
+        *) echo "Unsupported architecture: ${ARCH}" && exit 1 ;; \
+    esac && \
+    curl -LsSf "${NEXTEST_URL}" | tar zxf - -C /opt/rust/cargo/bin && \
+    chown node:node /opt/rust/cargo/bin/cargo-nextest
 
 RUN ARCH=$(dpkg --print-architecture) && \
   wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \

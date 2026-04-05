@@ -436,8 +436,11 @@ describe('Reporters', () => {
         },
         {
           name: 'rust',
-          expected:
-            "thread 'calculator_tests::should_add_numbers_correctly' panicked at src/lib.rs:12:9:",
+          expected: [
+            'calculator_tests::should_add_numbers_correctly',
+            'panicked at',
+            'src/lib.rs:12:9',
+          ],
         },
         {
           name: 'storybook',
