@@ -596,4 +596,241 @@ RSpec.describe TddGuardRspec::Formatter do
       end
     end
   end
+
+  describe "unhandledErrors field" do
+    # All message strings below are verbatim captures from running real RSpec
+    # 3.13.6 against minimal reproduction cases. They exercise the parser for
+    # every shape the internal ExceptionPresenter is known to produce when
+    # reporting errors outside of examples.
+
+    let(:after_suite_message) do
+      <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: raise RuntimeError, "cleanup failed in after(:suite)"
+
+        RuntimeError:
+          cleanup failed in after(:suite)
+        # ./spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'
+      MSG
+    end
+
+    let(:before_suite_message) do
+      <<~MSG
+
+        An error occurred in a `before(:suite)` hook.
+        Failure/Error: raise StandardError, "setup failed in before(:suite)"
+
+        StandardError:
+          setup failed in before(:suite)
+        # ./spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'
+      MSG
+    end
+
+    let(:after_context_message) do
+      <<~MSG
+
+        An error occurred in an `after(:context)` hook.
+        Failure/Error: raise RuntimeError, "context cleanup failed"
+
+        RuntimeError:
+          context cleanup failed
+        # ./spec/my_class_spec.rb:3:in `block (2 levels) in <top (required)>'
+      MSG
+    end
+
+    def run_with_message(messages, count: 1)
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          Array(messages).each do |msg|
+            formatter.message(build_message_notification(msg))
+          end
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: count))
+          yield run_and_read_json(formatter, storage_dir)
+        end
+      end
+    end
+
+    it "captures after(:suite) hook failures" do
+      run_with_message(after_suite_message) do |data|
+        expect(data["unhandledErrors"]).to eq([
+          {
+            "name" => "RuntimeError",
+            "message" => "cleanup failed in after(:suite)",
+            "stack" => "spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'"
+          }
+        ])
+      end
+    end
+
+    it "captures before(:suite) hook failures" do
+      run_with_message(before_suite_message) do |data|
+        expect(data["unhandledErrors"].first["name"]).to eq("StandardError")
+        expect(data["unhandledErrors"].first["message"]).to eq("setup failed in before(:suite)")
+      end
+    end
+
+    it "captures after(:context) hook failures" do
+      run_with_message(after_context_message) do |data|
+        expect(data["unhandledErrors"].first["name"]).to eq("RuntimeError")
+        expect(data["unhandledErrors"].first["message"]).to eq("context cleanup failed")
+      end
+    end
+
+    it "captures namespaced exception classes" do
+      msg = <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: raise MyApp::DatabaseError, "namespaced error"
+
+        MyApp::DatabaseError:
+          namespaced error
+        # ./spec/my_class_spec.rb:5:in `block (2 levels) in <top (required)>'
+      MSG
+
+      run_with_message(msg) do |data|
+        expect(data["unhandledErrors"].first["name"]).to eq("MyApp::DatabaseError")
+      end
+    end
+
+    it "captures anonymous exception classes" do
+      msg = <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: raise anon, "anonymous class error"
+
+        (anonymous error class):
+          anonymous class error
+        # ./spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'
+      MSG
+
+      run_with_message(msg) do |data|
+        expect(data["unhandledErrors"].first["name"]).to eq("(anonymous error class)")
+      end
+    end
+
+    it "captures exception classes without an Error suffix" do
+      msg = <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: raise WeirdName, "no Error suffix"
+
+        WeirdName:
+          no Error suffix
+        # ./spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'
+      MSG
+
+      run_with_message(msg) do |data|
+        expect(data["unhandledErrors"].first["name"]).to eq("WeirdName")
+      end
+    end
+
+    it "preserves multi-line exception messages" do
+      msg = <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: raise RuntimeError, "line one\\nline two"
+
+        RuntimeError:
+          line one
+          line two
+        # ./spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'
+      MSG
+
+      run_with_message(msg) do |data|
+        expect(data["unhandledErrors"].first["message"]).to eq("line one\nline two")
+      end
+    end
+
+    it "strips ANSI escape codes from the message body" do
+      msg = "\nAn error occurred in an `after(:suite)` hook.\n" \
+            "Failure/Error: raise RuntimeError, \"boom\"\n\n" \
+            "RuntimeError:\n" \
+            "  \e[1;31mboom\e[0m\n" \
+            "# ./spec/my_class_spec.rb:4:in `block (2 levels) in <top (required)>'\n"
+
+      run_with_message(msg) do |data|
+        expect(data["unhandledErrors"].first["message"]).to eq("boom")
+      end
+    end
+
+    it "handles exceptions with empty backtrace" do
+      msg = <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: Unable to find matching line from backtrace
+
+        RuntimeError:
+          error with empty backtrace
+      MSG
+
+      run_with_message(msg) do |data|
+        entry = data["unhandledErrors"].first
+        expect(entry["name"]).to eq("RuntimeError")
+        expect(entry["message"]).to eq("error with empty backtrace")
+        expect(entry).not_to have_key("stack")
+      end
+    end
+
+    it "accumulates multiple unhandled errors in one run" do
+      second_msg = <<~MSG
+
+        An error occurred in an `after(:suite)` hook.
+        Failure/Error: raise StandardError, "second"
+
+        StandardError:
+          second
+        # ./spec/my_class_spec.rb:6:in `block (2 levels) in <top (required)>'
+      MSG
+
+      run_with_message([after_suite_message, second_msg], count: 2) do |data|
+        expect(data["unhandledErrors"].length).to eq(2)
+        expect(data["unhandledErrors"].map { |e| e["name"] }).to eq(["RuntimeError", "StandardError"])
+      end
+    end
+
+    it "skips RSpec-prefixed class names as a safe fallback" do
+      # ExceptionPresenter suppresses the class name line when the class name
+      # matches /RSpec/, leaving us with no reliable way to extract the name.
+      # Parsing must fail gracefully so the error is dropped rather than stored
+      # with corrupt data.
+      msg = "\nAn error occurred in an `after(:suite)` hook.\n" \
+            "Failure/Error: raise RSpecCustom::SomeError, \"rspec prefixed\"\n" \
+            "  rspec prefixed\n" \
+            "# ./spec/my_class_spec.rb:7:in `block (2 levels) in <top (required)>'\n"
+
+      run_with_message(msg) do |data|
+        expect(data).not_to have_key("unhandledErrors")
+      end
+    end
+
+    it "keeps load errors on the existing synthetic-test path" do
+      load_msg = <<~MSG
+        An error occurred while loading ./spec/my_class_spec.rb.
+        Failure/Error: require "my_class"
+
+        LoadError:
+          cannot load such file -- my_class
+        # ./spec/my_class_spec.rb:3:in `<top (required)>'
+      MSG
+
+      run_with_message(load_msg) do |data|
+        expect(data).not_to have_key("unhandledErrors")
+        expect(all_tests(data).length).to eq(1)
+      end
+    end
+
+    it "omits the unhandledErrors key when no unhandled errors occurred" do
+      Dir.mktmpdir do |tmpdir|
+        create_formatter_in(tmpdir) do |formatter, storage_dir|
+          example = build_example(file_path: "./spec/my_class_spec.rb")
+          formatter.example_passed(build_notification(example))
+          formatter.dump_summary(build_summary_notification(errors_outside_of_examples_count: 0))
+
+          data = run_and_read_json(formatter, storage_dir)
+          expect(data).not_to have_key("unhandledErrors")
+        end
+      end
+    end
+  end
 end

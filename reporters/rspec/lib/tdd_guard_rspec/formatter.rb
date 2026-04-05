@@ -19,10 +19,14 @@ module TddGuardRspec
 
     DEFAULT_DATA_DIR = ".claude/tdd-guard/data"
 
+    ANSI_ESCAPE = /\e\[[0-9;]*m/
+    CLASS_NAME_LINE = /\A[A-Z(][\w:() ]*:\z/
+
     def initialize(output)
       super(output)
       @test_results = []
       @load_errors = []
+      @unhandled_errors = []
       @errors_outside = 0
       @expected_count = 0
       @storage_dir = determine_storage_dir
@@ -51,7 +55,12 @@ module TddGuardRspec
 
     def message(notification)
       msg = notification.message
-      @load_errors << msg if msg.include?("An error occurred while loading")
+      if msg.include?("An error occurred while loading")
+        @load_errors << msg
+      elsif msg.include?("Failure/Error:")
+        parsed = parse_unhandled_error(msg)
+        @unhandled_errors << parsed if parsed
+      end
     end
 
     def dump_summary(notification)
@@ -80,6 +89,7 @@ module TddGuardRspec
         "testModules" => modules_map.values,
         "reason" => reason
       }
+      result["unhandledErrors"] = @unhandled_errors unless @unhandled_errors.empty?
 
       FileUtils.mkdir_p(@storage_dir)
       File.write(File.join(@storage_dir, "test.json"), JSON.pretty_generate(result))
@@ -132,6 +142,38 @@ module TddGuardRspec
       return nil unless frame
 
       frame.sub(%r{^.*/(?=spec/)}, "").sub(%r{^\./}, "")
+    end
+
+    # Parses a formatted exception string produced by RSpec's internal
+    # ExceptionPresenter (delivered via the :message callback for errors outside
+    # of examples, such as before/after :suite and :context hook failures).
+    #
+    # Returns a Hash with "name", "message", and optional "stack" on success,
+    # or nil if the expected structure cannot be found (safe fallback: the
+    # error is dropped rather than producing malformed output).
+    def parse_unhandled_error(raw)
+      lines = raw.gsub(ANSI_ESCAPE, "").split("\n")
+
+      # The header ends where the backtrace begins (first "# ..." line).
+      # If there is no backtrace at all, the entire message is the header.
+      bt_start = lines.index { |line| line.start_with?("# ") } || lines.length
+
+      header_lines = lines[0...bt_start]
+      class_idx = header_lines.rindex { |line| line =~ CLASS_NAME_LINE }
+      return nil unless class_idx
+
+      name = header_lines[class_idx].chomp(":")
+      message_lines = header_lines[(class_idx + 1)..-1] || []
+      message_body = message_lines.map { |line| line.sub(/\A  /, "") }.join("\n").strip
+      return nil if message_body.empty?
+
+      backtrace_frames = lines[bt_start..-1].to_a.select { |line| line.start_with?("# ") }
+      backtrace_paths = backtrace_frames.map { |line| line.sub(/\A# /, "") }
+      stack = extract_relevant_stack(backtrace_paths)
+
+      result = { "name" => name, "message" => message_body }
+      result["stack"] = stack if stack
+      result
     end
 
     def determine_storage_dir
