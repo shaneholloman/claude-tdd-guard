@@ -48,7 +48,7 @@ export const RuboCopFileSchema = z.object({
 })
 
 export const RuboCopResultSchema = z.object({
-  files: z.array(RuboCopFileSchema),
+  files: z.array(RuboCopFileSchema).optional(),
 })
 
 export const LintIssueSchema = z.object({

@@ -42,7 +42,7 @@ const isExecError = (error: unknown): error is Error & { stdout?: string } =>
 const parseResults = (stdout?: string): RuboCopFile[] => {
   try {
     const parsed: RuboCopResult = JSON.parse(stdout ?? '{"files":[]}')
-    return parsed.files
+    return parsed.files ?? []
   } catch {
     return []
   }

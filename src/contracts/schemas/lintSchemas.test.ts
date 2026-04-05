@@ -473,9 +473,9 @@ describe('RuboCopResultSchema', () => {
       expectedSuccess: true,
     },
     {
-      description: 'without required files',
+      description: 'valid result without files (undefined)',
       result: testData.ruboCopResultWithout(['files']),
-      expectedSuccess: false,
+      expectedSuccess: true,
     },
     {
       description: 'with non-array files',
