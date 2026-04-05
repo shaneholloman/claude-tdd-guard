@@ -14,7 +14,7 @@ describe('Test Context', () => {
     beforeEach(async () => {
       // Setup
       storage = new MemoryStorage()
-      reporter = new VitestReporter(storage)
+      reporter = new VitestReporter({ storage })
       processor = new TestResultsProcessor()
 
       // Given a module with import error

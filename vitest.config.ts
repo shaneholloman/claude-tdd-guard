@@ -21,7 +21,7 @@ const baseResolveConfig = {
 
 export default defineConfig({
   test: {
-    reporters: ['default', new VitestReporter(root)],
+    reporters: ['default', new VitestReporter({ projectRoot: root })],
     projects: [
       {
         test: {
