@@ -9,7 +9,8 @@
       "GIT_DELTA_VERSION": "0.18.2",
       "ZSH_IN_DOCKER_VERSION": "1.2.1",
       "GO_VERSION": "1.24.0",
-      "RUST_VERSION": "1.89.0"
+      "RUST_VERSION": "1.89.0",
+      "RUBY_VERSION": "3.3.6"
     }
   },
   "runArgs": ["--cap-add=NET_ADMIN", "--cap-add=NET_RAW"],

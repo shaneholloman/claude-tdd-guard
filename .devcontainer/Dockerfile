@@ -1,3 +1,7 @@
+ARG RUBY_VERSION=3.3.6
+
+FROM ruby:${RUBY_VERSION}-slim-bookworm AS ruby-source
+
 FROM node:22
 
 ARG TZ
@@ -39,8 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   php-cli \
   php-mbstring \
   php-xml \
-  ruby \
-  ruby-dev \
+  libyaml-0-2 \
+  libreadline8 \
   build-essential \
   curl \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -102,8 +106,23 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php && \
     rm composer-setup.php composer-setup.sig && \
     chmod +x /usr/local/bin/composer
 
-# Install Bundler for Ruby
-RUN gem install bundler
+# Install Ruby from the official image (bundler ships with the runtime)
+COPY --from=ruby-source /usr/local/bin/ruby /usr/local/bin/ruby
+COPY --from=ruby-source /usr/local/bin/gem /usr/local/bin/gem
+COPY --from=ruby-source /usr/local/bin/bundle /usr/local/bin/bundle
+COPY --from=ruby-source /usr/local/bin/bundler /usr/local/bin/bundler
+COPY --from=ruby-source /usr/local/bin/irb /usr/local/bin/irb
+COPY --from=ruby-source /usr/local/bin/rake /usr/local/bin/rake
+COPY --from=ruby-source /usr/local/bin/erb /usr/local/bin/erb
+COPY --from=ruby-source /usr/local/bin/rdoc /usr/local/bin/rdoc
+COPY --from=ruby-source /usr/local/bin/ri /usr/local/bin/ri
+COPY --from=ruby-source /usr/local/bin/racc /usr/local/bin/racc
+COPY --from=ruby-source /usr/local/bin/typeprof /usr/local/bin/typeprof
+COPY --from=ruby-source /usr/local/lib/ruby /usr/local/lib/ruby
+COPY --from=ruby-source /usr/local/lib/libruby.so* /usr/local/lib/
+COPY --from=ruby-source /usr/local/include /usr/local/include
+COPY --from=ruby-source /usr/local/etc/gemrc /usr/local/etc/gemrc
+RUN ldconfig
 
 # Install Go
 RUN ARCH=$(dpkg --print-architecture) && \
