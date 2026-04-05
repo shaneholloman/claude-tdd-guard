@@ -8,6 +8,10 @@ import {
   GolangciLintPositionSchema,
   GolangciLintIssueSchema,
   GolangciLintResultSchema,
+  RuboCopLocationSchema,
+  RuboCopOffenseSchema,
+  RuboCopFileSchema,
+  RuboCopResultSchema,
 } from './lintSchemas'
 import { testData } from '@testUtils'
 
@@ -342,6 +346,147 @@ describe('GolangciLintResultSchema', () => {
     },
   ])('$description', ({ result, expectedSuccess }) => {
     const parseResult = GolangciLintResultSchema.safeParse(result)
+    expect(parseResult.success).toBe(expectedSuccess)
+  })
+})
+
+describe('RuboCopLocationSchema', () => {
+  test.each([
+    {
+      description: 'valid location with all fields',
+      location: testData.ruboCopLocation(),
+      expectedSuccess: true,
+    },
+    {
+      description: 'without required line',
+      location: testData.ruboCopLocationWithout(['line']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required column',
+      location: testData.ruboCopLocationWithout(['column']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'with invalid line type',
+      location: {
+        ...testData.ruboCopLocation(),
+        line: '10',
+      },
+      expectedSuccess: false,
+    },
+  ])('$description', ({ location, expectedSuccess }) => {
+    const result = RuboCopLocationSchema.safeParse(location)
+    expect(result.success).toBe(expectedSuccess)
+  })
+})
+
+describe('RuboCopOffenseSchema', () => {
+  test.each([
+    {
+      description: 'valid offense with all fields',
+      offense: testData.ruboCopOffense(),
+      expectedSuccess: true,
+    },
+    {
+      description: 'without required severity',
+      offense: testData.ruboCopOffenseWithout(['severity']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required message',
+      offense: testData.ruboCopOffenseWithout(['message']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required cop_name',
+      offense: testData.ruboCopOffenseWithout(['cop_name']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required location',
+      offense: testData.ruboCopOffenseWithout(['location']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'with invalid location structure',
+      offense: {
+        ...testData.ruboCopOffense(),
+        location: {
+          ...testData.ruboCopLocation(),
+          line: 'invalid',
+        },
+      },
+      expectedSuccess: false,
+    },
+  ])('$description', ({ offense, expectedSuccess }) => {
+    const result = RuboCopOffenseSchema.safeParse(offense)
+    expect(result.success).toBe(expectedSuccess)
+  })
+})
+
+describe('RuboCopFileSchema', () => {
+  test.each([
+    {
+      description: 'valid file with offenses array',
+      file: testData.ruboCopFile(),
+      expectedSuccess: true,
+    },
+    {
+      description: 'valid file with empty offenses array',
+      file: testData.ruboCopFile({ offenses: [] }),
+      expectedSuccess: true,
+    },
+    {
+      description: 'without required path',
+      file: testData.ruboCopFileWithout(['path']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'without required offenses',
+      file: testData.ruboCopFileWithout(['offenses']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'with malformed offense in offenses array',
+      file: testData.ruboCopFile({
+        offenses: [testData.ruboCopOffenseWithout(['message'])],
+      }),
+      expectedSuccess: false,
+    },
+  ])('$description', ({ file, expectedSuccess }) => {
+    const result = RuboCopFileSchema.safeParse(file)
+    expect(result.success).toBe(expectedSuccess)
+  })
+})
+
+describe('RuboCopResultSchema', () => {
+  test.each([
+    {
+      description: 'valid result with files array',
+      result: testData.ruboCopResult(),
+      expectedSuccess: true,
+    },
+    {
+      description: 'valid result with empty files array',
+      result: testData.ruboCopResult({ files: [] }),
+      expectedSuccess: true,
+    },
+    {
+      description: 'without required files',
+      result: testData.ruboCopResultWithout(['files']),
+      expectedSuccess: false,
+    },
+    {
+      description: 'with non-array files',
+      result: {
+        ...testData.ruboCopResult(),
+        files: 'not-an-array',
+      },
+      expectedSuccess: false,
+    },
+  ])('$description', ({ result, expectedSuccess }) => {
+    const parseResult = RuboCopResultSchema.safeParse(result)
     expect(parseResult.success).toBe(expectedSuccess)
   })
 })

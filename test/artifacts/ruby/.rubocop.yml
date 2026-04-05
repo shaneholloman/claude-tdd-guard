@@ -1,0 +1,12 @@
+AllCops:
+  NewCops: disable
+
+Naming/FileName:
+  Enabled: false
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
+
+Lint/UselessAssignment:
+  Enabled: true

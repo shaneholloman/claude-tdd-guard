@@ -30,6 +30,27 @@ export const GolangciLintResultSchema = z.object({
   Issues: z.array(GolangciLintIssueSchema).optional(),
 })
 
+export const RuboCopLocationSchema = z.object({
+  line: z.number(),
+  column: z.number(),
+})
+
+export const RuboCopOffenseSchema = z.object({
+  severity: z.string(),
+  message: z.string(),
+  cop_name: z.string(),
+  location: RuboCopLocationSchema,
+})
+
+export const RuboCopFileSchema = z.object({
+  path: z.string(),
+  offenses: z.array(RuboCopOffenseSchema),
+})
+
+export const RuboCopResultSchema = z.object({
+  files: z.array(RuboCopFileSchema),
+})
+
 export const LintIssueSchema = z.object({
   file: z.string(),
   line: z.number(),
@@ -56,6 +77,10 @@ export type ESLintResult = z.infer<typeof ESLintResultSchema>
 export type GolangciLintPosition = z.infer<typeof GolangciLintPositionSchema>
 export type GolangciLintIssue = z.infer<typeof GolangciLintIssueSchema>
 export type GolangciLintResult = z.infer<typeof GolangciLintResultSchema>
+export type RuboCopLocation = z.infer<typeof RuboCopLocationSchema>
+export type RuboCopOffense = z.infer<typeof RuboCopOffenseSchema>
+export type RuboCopFile = z.infer<typeof RuboCopFileSchema>
+export type RuboCopResult = z.infer<typeof RuboCopResultSchema>
 export type LintData = z.infer<typeof LintDataSchema>
 export type LintIssue = z.infer<typeof LintIssueSchema>
 export type LintResult = z.infer<typeof LintResultSchema>

@@ -1,6 +1,7 @@
 # Linting and Refactoring Support
 
-TDD Guard can optionally check code quality during the refactoring phase (when tests are green) using ESLint.
+TDD Guard can optionally check code quality during the refactoring phase (when tests are green).
+The following linters are supported: ESLint (JavaScript/TypeScript), golangci-lint (Go), and RuboCop (Ruby).
 When issues are detected, the coding agent will be prompted to fix them.
 
 ## Why Use Refactoring Support?
@@ -20,19 +21,29 @@ The refactoring support helps by:
 
 ## Setup
 
-1. **Install ESLint** in your project:
+1. **Install a supported linter** in your project:
+
+   For JavaScript/TypeScript (ESLint):
 
    ```bash
    npm install --save-dev eslint@latest
    ```
 
+   For Go (golangci-lint): see the [golangci-lint installation guide](https://golangci-lint.run/welcome/install/).
+
+   For Ruby (RuboCop):
+
+   ```bash
+   gem install rubocop
+   ```
+
 2. **Enable linting** by setting the environment variable:
 
    ```bash
-   LINTER_TYPE=eslint
+   LINTER_TYPE=eslint          # for ESLint
+   LINTER_TYPE=golangci-lint   # for golangci-lint
+   LINTER_TYPE=rubocop         # for RuboCop
    ```
-
-   Note: Currently only ESLint is supported. Additional linters may be added in the future.
 
 3. **Configure the PostToolUse hook**
 
@@ -74,11 +85,11 @@ The refactoring support helps by:
 When enabled:
 
 1. After any file modification (Edit, MultiEdit, Write)
-2. TDD Guard runs ESLint on modified files
+2. TDD Guard runs the configured linter on modified files
 3. If issues are found, the coding agent receives a notification
 4. The agent will then fix the identified issues
 
-Without `LINTER_TYPE=eslint`, TDD Guard skips all linting operations.
+Without `LINTER_TYPE` set, TDD Guard skips all linting operations.
 
 **Tip**: Configure ESLint with complexity rules (e.g., `complexity`, `max-depth`) and the SonarJS plugin to encourage meaningful refactoring.
 These rules help identify code that could benefit from simplification during the green phase.
@@ -105,5 +116,12 @@ module.exports = {
 
 1. Verify ESLint is installed: `npm list eslint`
 2. Check that `LINTER_TYPE=eslint` is set in your `.env` file
+3. Ensure the PostToolUse hook is configured
+4. Restart your Claude session after making changes
+
+### RuboCop Not Running
+
+1. Verify RuboCop is installed: `rubocop --version`
+2. Check that `LINTER_TYPE=rubocop` is set in your `.env` file
 3. Ensure the PostToolUse hook is configured
 4. Restart your Claude session after making changes

@@ -117,6 +117,14 @@ export const testData = {
   golangciLintIssueWithout: lintFactory.golangciLintIssueWithout,
   golangciLintResult: lintFactory.golangciLintResult,
   golangciLintResultWithout: lintFactory.golangciLintResultWithout,
+  ruboCopLocation: lintFactory.ruboCopLocation,
+  ruboCopLocationWithout: lintFactory.ruboCopLocationWithout,
+  ruboCopOffense: lintFactory.ruboCopOffense,
+  ruboCopOffenseWithout: lintFactory.ruboCopOffenseWithout,
+  ruboCopFile: lintFactory.ruboCopFile,
+  ruboCopFileWithout: lintFactory.ruboCopFileWithout,
+  ruboCopResult: lintFactory.ruboCopResult,
+  ruboCopResultWithout: lintFactory.ruboCopResultWithout,
 
   // UserPromptSubmit factories
   userPromptSubmit: userPromptSubmitFactory.userPromptSubmit,

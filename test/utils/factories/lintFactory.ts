@@ -11,6 +11,10 @@ import type {
   GolangciLintPosition,
   GolangciLintIssue,
   GolangciLintResult,
+  RuboCopLocation,
+  RuboCopOffense,
+  RuboCopFile,
+  RuboCopResult,
 } from '../../../src/contracts/schemas/lintSchemas'
 import { omit } from './helpers'
 
@@ -348,5 +352,128 @@ export const golangciLintResultWithout = <K extends keyof GolangciLintResult>(
   params?: Partial<GolangciLintResult>
 ): Omit<GolangciLintResult, K> => {
   const fullResult = golangciLintResult(params)
+  return omit(fullResult, keys)
+}
+
+/**
+ * Creates a RuboCop location object
+ * @param params - Optional parameters for the location
+ */
+export const ruboCopLocation = (
+  params?: Partial<RuboCopLocation>
+): RuboCopLocation => {
+  const defaults: RuboCopLocation = {
+    line: 10,
+    column: 5,
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a RuboCop location object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the location
+ */
+export const ruboCopLocationWithout = <K extends keyof RuboCopLocation>(
+  keys: K[],
+  params?: Partial<RuboCopLocation>
+): Omit<RuboCopLocation, K> => {
+  const fullLocation = ruboCopLocation(params)
+  return omit(fullLocation, keys)
+}
+
+/**
+ * Creates a RuboCop offense object
+ * @param params - Optional parameters for the offense
+ */
+export const ruboCopOffense = (
+  params?: Partial<RuboCopOffense>
+): RuboCopOffense => {
+  const defaults: RuboCopOffense = {
+    severity: 'convention',
+    message: 'Use 2 (not 4) spaces for indentation.',
+    cop_name: 'Layout/IndentationWidth',
+    location: ruboCopLocation(),
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a RuboCop offense object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the offense
+ */
+export const ruboCopOffenseWithout = <K extends keyof RuboCopOffense>(
+  keys: K[],
+  params?: Partial<RuboCopOffense>
+): Omit<RuboCopOffense, K> => {
+  const fullOffense = ruboCopOffense(params)
+  return omit(fullOffense, keys)
+}
+
+/**
+ * Creates a RuboCop file object
+ * @param params - Optional parameters for the file
+ */
+export const ruboCopFile = (params?: Partial<RuboCopFile>): RuboCopFile => {
+  const defaults: RuboCopFile = {
+    path: '/src/example.rb',
+    offenses: [ruboCopOffense()],
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a RuboCop file object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the file
+ */
+export const ruboCopFileWithout = <K extends keyof RuboCopFile>(
+  keys: K[],
+  params?: Partial<RuboCopFile>
+): Omit<RuboCopFile, K> => {
+  const fullFile = ruboCopFile(params)
+  return omit(fullFile, keys)
+}
+
+/**
+ * Creates a RuboCop result object
+ * @param params - Optional parameters for the result
+ */
+export const ruboCopResult = (
+  params?: Partial<RuboCopResult>
+): RuboCopResult => {
+  const defaults: RuboCopResult = {
+    files: [ruboCopFile()],
+  }
+
+  return {
+    ...defaults,
+    ...params,
+  }
+}
+
+/**
+ * Creates a RuboCop result object with specified properties omitted
+ * @param keys - Array of property keys to omit
+ * @param params - Optional parameters for the result
+ */
+export const ruboCopResultWithout = <K extends keyof RuboCopResult>(
+  keys: K[],
+  params?: Partial<RuboCopResult>
+): Omit<RuboCopResult, K> => {
+  const fullResult = ruboCopResult(params)
   return omit(fullResult, keys)
 }
