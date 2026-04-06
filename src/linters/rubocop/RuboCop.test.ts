@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import { RuboCop } from './RuboCop'
+import { RunRuboCop } from './runRuboCop'
 import { join } from 'path'
 import { LintResult } from '../../contracts/schemas/lintSchemas'
 import { hasRules, issuesFromFile } from '../../../test/utils/assertions'
@@ -81,6 +82,18 @@ describe('RuboCop', () => {
     })
   })
 
+  describe('platform-specific shell option', () => {
+    test('sets shell option to true on Windows', async () => {
+      const { options } = await lintOnPlatform('win32')
+      expect(options?.shell).toBe(true)
+    })
+
+    test('sets shell option to false on non-Windows platforms', async () => {
+      const { options } = await lintOnPlatform('darwin')
+      expect(options?.shell).toBe(false)
+    })
+  })
+
   describe('linter.lint with artifact files', () => {
     const artifactsDir = join(process.cwd(), 'test', 'artifacts', 'ruby')
     const configPath = join(artifactsDir, '.rubocop.yml')
@@ -132,3 +145,25 @@ describe('RuboCop', () => {
     })
   })
 })
+
+async function lintOnPlatform(
+  platform: 'win32' | 'darwin' | 'linux'
+): Promise<{ options: { shell: boolean } | undefined }> {
+  const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
+  Object.defineProperty(process, 'platform', { value: platform })
+
+  let options: { shell: boolean } | undefined
+  const fakeRun: RunRuboCop = async (_args, opts) => {
+    options = opts
+    return { stdout: '{"files":[]}', stderr: '' }
+  }
+
+  try {
+    await new RuboCop(fakeRun).lint(['src/file.rb'])
+    return { options }
+  } finally {
+    if (originalPlatform) {
+      Object.defineProperty(process, 'platform', originalPlatform)
+    }
+  }
+}

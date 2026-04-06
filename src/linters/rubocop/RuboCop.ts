@@ -5,24 +5,33 @@ import {
   RuboCopFile,
   RuboCopOffense,
 } from '../../contracts/schemas/lintSchemas'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import { Linter } from '../Linter'
-
-const execFileAsync = promisify(execFile)
+import { runRuboCop, RunRuboCop } from './runRuboCop'
 
 export class RuboCop implements Linter {
+  private readonly run: RunRuboCop
+
+  constructor(run: RunRuboCop = runRuboCop) {
+    this.run = run
+  }
+
   async lint(filePaths: string[], configPath?: string): Promise<LintResult> {
     const timestamp = new Date().toISOString()
     const args = buildArgs(filePaths, configPath)
 
     try {
-      const { stdout } = await execFileAsync('rubocop', args)
-      return createLintData(timestamp, filePaths, parseResults(stdout))
+      const { stdout } = await this.run(args, {
+        shell: process.platform === 'win32',
+      })
+      return createLintData(timestamp, filePaths, parseResults(String(stdout)))
     } catch (error) {
       if (!isExecError(error)) throw error
 
-      return createLintData(timestamp, filePaths, parseResults(error.stdout))
+      return createLintData(
+        timestamp,
+        filePaths,
+        parseResults(String(error.stdout))
+      )
     }
   }
 }
