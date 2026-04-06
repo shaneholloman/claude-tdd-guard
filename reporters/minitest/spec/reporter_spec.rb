@@ -1,0 +1,286 @@
+# frozen_string_literal: true
+
+require "spec_helper"
+require "helpers"
+require "json"
+require "tmpdir"
+require "fileutils"
+
+RSpec.describe TddGuardMinitest::Reporter do
+  include TddGuardMinitestHelpers
+
+  let(:default_data_dir) { TddGuardMinitest::Reporter::DEFAULT_DATA_DIR }
+
+  # Helper: create a reporter with storage_dir pointing to a tmpdir
+  def create_reporter_in(tmpdir)
+    real_tmpdir = File.realpath(tmpdir)
+    Dir.chdir(real_tmpdir) do
+      ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => real_tmpdir) do
+        reporter = described_class.new(StringIO.new)
+        yield reporter, real_tmpdir
+      end
+    end
+  end
+
+  # Helper: run the full flow and return parsed JSON
+  def run_and_read_json(reporter, storage_dir)
+    reporter.report
+    json_path = File.join(storage_dir, default_data_dir, "test.json")
+    JSON.parse(File.read(json_path))
+  end
+
+  # Helper: extract flat list of tests from JSON data
+  def all_tests(data)
+    data["testModules"].flat_map { |m| m["tests"] }
+  end
+
+  describe "#record" do
+    it "captures passed test result" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          result = build_result(
+            name: "test_does_something",
+            klass: "MyClassTest",
+            source_location: ["./test/my_class_test.rb", 5]
+          )
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]).to eq(
+            "name" => "test_does_something",
+            "fullName" => "test/my_class_test.rb::MyClassTest#test_does_something",
+            "state" => "passed"
+          )
+        end
+      end
+    end
+
+    it "captures failed test result with error message" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          failure = build_assertion_failure(message: "Expected: 6\n  Actual: 5")
+          result = build_result(
+            name: "test_raises_error",
+            klass: "MyClassTest",
+            source_location: ["./test/my_class_test.rb", 10],
+            failures: [failure]
+          )
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]["name"]).to eq("test_raises_error")
+          expect(tests[0]["state"]).to eq("failed")
+          expect(tests[0]["errors"][0]["message"]).to eq("Expected: 6\n  Actual: 5")
+        end
+      end
+    end
+
+    it "captures skipped test" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          skip_failure = build_skip(message: "not implemented yet")
+          result = build_result(
+            name: "test_is_pending",
+            klass: "MyClassTest",
+            source_location: ["./test/my_class_test.rb", 15],
+            failures: [skip_failure]
+          )
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          tests = all_tests(data)
+          expect(tests.length).to eq(1)
+          expect(tests[0]["state"]).to eq("skipped")
+        end
+      end
+    end
+  end
+
+  describe "#report" do
+    it "saves empty testModules when no tests ran" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          data = run_and_read_json(reporter, storage_dir)
+          expect(data["testModules"]).to eq([])
+        end
+      end
+    end
+
+    it "saves results grouped by module to JSON" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          [
+            { name: "test_one", klass: "ModelTest", file: "test/model_test.rb", failures: [] },
+            { name: "test_two", klass: "ModelTest", file: "test/model_test.rb",
+              failures: [build_assertion_failure(message: "Error")] },
+            { name: "test_other", klass: "ServiceTest", file: "test/service_test.rb", failures: [] }
+          ].each do |t|
+            result = build_result(
+              name: t[:name],
+              klass: t[:klass],
+              source_location: [t[:file], 5],
+              failures: t[:failures]
+            )
+            reporter.record(result)
+          end
+
+          data = run_and_read_json(reporter, storage_dir)
+          expect(data["testModules"].length).to eq(2)
+
+          model_module = data["testModules"].find { |m| m["moduleId"] == "test/model_test.rb" }
+          expect(model_module["tests"].length).to eq(2)
+          expect(model_module["tests"][0]["name"]).to eq("test_one")
+
+          service_module = data["testModules"].find { |m| m["moduleId"] == "test/service_test.rb" }
+          expect(service_module["tests"].length).to eq(1)
+          expect(service_module["tests"][0]["name"]).to eq("test_other")
+        end
+      end
+    end
+  end
+
+  describe "name extraction" do
+    it "uses result.name as name" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          result = build_result(name: "test_returns_correct_value")
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          expect(all_tests(data)[0]["name"]).to eq("test_returns_correct_value")
+        end
+      end
+    end
+  end
+
+  describe "fullName format" do
+    it "uses file_path::klass#name as fullName" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          result = build_result(
+            name: "test_works",
+            klass: "WidgetTest",
+            source_location: ["./test/widget_test.rb", 5]
+          )
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          expect(all_tests(data)[0]["fullName"]).to eq("test/widget_test.rb::WidgetTest#test_works")
+        end
+      end
+    end
+  end
+
+  describe "path handling" do
+    it "strips leading ./ from file path" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          result = build_result(source_location: ["./test/foo_test.rb", 5])
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          expect(all_tests(data)[0]["fullName"]).to start_with("test/foo_test.rb")
+        end
+      end
+    end
+
+    it "handles file path without leading ./" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          result = build_result(source_location: ["test/bar_test.rb", 5])
+          reporter.record(result)
+
+          data = run_and_read_json(reporter, storage_dir)
+          expect(all_tests(data)[0]["fullName"]).to start_with("test/bar_test.rb::")
+        end
+      end
+    end
+  end
+
+  describe "storage directory determination" do
+    it "uses default relative path when no env var set" do
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => nil) do
+            reporter = described_class.new(StringIO.new)
+            reporter.report
+
+            json_path = File.join(default_data_dir, "test.json")
+            expect(File.exist?(json_path)).to be true
+          end
+        end
+      end
+    end
+
+    it "rejects relative path in env var" do
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => "../some/path") do
+            reporter = described_class.new(StringIO.new)
+            reporter.report
+
+            json_path = File.join(default_data_dir, "test.json")
+            expect(File.exist?(json_path)).to be true
+            expect(File.exist?(File.join("../some/path", default_data_dir, "test.json"))).to be false
+          end
+        end
+      end
+    end
+
+    it "rejects project root when cwd is outside" do
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => "/other/project") do
+            reporter = described_class.new(StringIO.new)
+            reporter.report
+
+            json_path = File.join(default_data_dir, "test.json")
+            expect(File.exist?(json_path)).to be true
+          end
+        end
+      end
+    end
+
+    it "rejects project root that is a prefix of cwd but not an ancestor" do
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        project_dir = File.join(real_tmpdir, "foo")
+        similar_dir = File.join(real_tmpdir, "foobar")
+        FileUtils.mkdir_p(similar_dir)
+
+        Dir.chdir(similar_dir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => project_dir) do
+            reporter = described_class.new(StringIO.new)
+            reporter.report
+
+            json_path = File.join(default_data_dir, "test.json")
+            expect(File.exist?(json_path)).to be true
+            expect(File.exist?(File.join(project_dir, default_data_dir, "test.json"))).to be false
+          end
+        end
+      end
+    end
+
+    it "uses project root from env var when valid" do
+      Dir.mktmpdir do |tmpdir|
+        real_tmpdir = File.realpath(tmpdir)
+        Dir.chdir(real_tmpdir) do
+          ClimateControl.modify("TDD_GUARD_PROJECT_ROOT" => real_tmpdir) do
+            reporter = described_class.new(StringIO.new)
+            reporter.report
+
+            json_path = File.join(real_tmpdir, default_data_dir, "test.json")
+            expect(File.exist?(json_path)).to be true
+          end
+        end
+      end
+    end
+  end
+end

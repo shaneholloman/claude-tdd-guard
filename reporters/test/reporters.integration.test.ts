@@ -24,6 +24,7 @@ import {
   createRustReporter,
   createStorybookReporter,
   createRspecReporter,
+  createMinitestReporter,
 } from './factories'
 
 // Test data structure for each reporter
@@ -43,6 +44,7 @@ type ReporterName =
   | 'rust'
   | 'storybook'
   | 'rspec'
+  | 'minitest'
 
 describe('Reporters', () => {
   const reporterData: ReporterTestData[] = []
@@ -58,6 +60,7 @@ describe('Reporters', () => {
       createRustReporter(),
       createStorybookReporter(),
       createRspecReporter(),
+      createMinitestReporter(),
     ]
 
     // Run all reporters in parallel, skipping any that fail (e.g., Rust not installed)
@@ -83,6 +86,7 @@ describe('Reporters', () => {
         { name: 'rust', expected: 'single_passing' },
         { name: 'storybook', expected: 'single-passing.stories' },
         { name: 'rspec', expected: 'single_passing_spec.rb' },
+        { name: 'minitest', expected: 'single_passing_test.rb' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -101,6 +105,7 @@ describe('Reporters', () => {
         { name: 'rust', expected: 'single_failing' },
         { name: 'storybook', expected: 'single-failing.stories' },
         { name: 'rspec', expected: 'single_failing_spec.rb' },
+        { name: 'minitest', expected: 'single_failing_test.rb' },
       ]
 
       it.each(reporters)('$name reports module path', ({ name, expected }) => {
@@ -148,6 +153,7 @@ describe('Reporters', () => {
         },
         { name: 'storybook', expected: 'play-test' },
         { name: 'rspec', expected: 'should add numbers correctly' },
+        { name: 'minitest', expected: 'test_should_add_numbers_correctly' },
       ]
 
       it.each(reporters)('$name reports test name', ({ name, expected }) => {
@@ -172,6 +178,7 @@ describe('Reporters', () => {
         },
         { name: 'storybook', expected: 'play-test' },
         { name: 'rspec', expected: 'should add numbers correctly' },
+        { name: 'minitest', expected: 'test_should_add_numbers_correctly' },
       ]
 
       it.each(reporters)('$name reports test name', ({ name, expected }) => {
@@ -246,6 +253,11 @@ describe('Reporters', () => {
           expected:
             'single_passing_spec.rb::Calculator should add numbers correctly',
         },
+        {
+          name: 'minitest',
+          expected:
+            'single_passing_test.rb::CalculatorTest#test_should_add_numbers_correctly',
+        },
       ]
 
       it.each(reporters)(
@@ -294,6 +306,11 @@ describe('Reporters', () => {
           name: 'rspec',
           expected:
             'single_failing_spec.rb::Calculator should add numbers correctly',
+        },
+        {
+          name: 'minitest',
+          expected:
+            'single_failing_test.rb::CalculatorTest#test_should_add_numbers_correctly',
         },
       ]
 
@@ -354,6 +371,7 @@ describe('Reporters', () => {
         'go',
         'rust',
         'rspec',
+        'minitest',
       ]
 
       it.each(reporters)('%s reports passing state', (reporter) => {
@@ -375,6 +393,7 @@ describe('Reporters', () => {
         'rust',
         'storybook',
         'rspec',
+        'minitest',
       ]
 
       it.each(reporters)('%s reports failing state', (reporter) => {
@@ -447,6 +466,7 @@ describe('Reporters', () => {
           expected: ['expected', '5', 'to be', '6'],
         },
         { name: 'rspec', expected: ['expected: 6', 'got: 5'] },
+        { name: 'minitest', expected: ['Expected: 6', 'Actual: 5'] },
       ]
 
       it.each(reporters)(
@@ -481,6 +501,7 @@ describe('Reporters', () => {
         { name: 'rust', expected: '6' }, // Successfully extracts expected value
         { name: 'storybook', expected: undefined },
         { name: 'rspec', expected: undefined },
+        { name: 'minitest', expected: undefined },
       ]
 
       it.each(reporters)(
@@ -505,6 +526,7 @@ describe('Reporters', () => {
         { name: 'rust', expected: '5' }, // Successfully extracts actual value
         { name: 'storybook', expected: undefined },
         { name: 'rspec', expected: undefined },
+        { name: 'minitest', expected: undefined },
       ]
 
       it.each(reporters)(
@@ -596,6 +618,7 @@ describe('Reporters', () => {
         { name: 'rust', expected: 'passed' },
         { name: 'storybook', expected: 'passed' },
         { name: 'rspec', expected: 'passed' },
+        { name: 'minitest', expected: undefined },
       ]
 
       it.each(reporters)(
@@ -620,6 +643,7 @@ describe('Reporters', () => {
         { name: 'rust', expected: 'failed' },
         { name: 'storybook', expected: 'failed' },
         { name: 'rspec', expected: 'failed' },
+        { name: 'minitest', expected: undefined },
       ]
 
       it.each(reporters)(
@@ -696,6 +720,7 @@ describe('Reporters', () => {
     const rust = reporterData.find((r) => r.name === 'RustReporter')
     const storybook = reporterData.find((r) => r.name === 'StorybookReporter')
     const rspec = reporterData.find((r) => r.name === 'RSpecReporter')
+    const minitest = reporterData.find((r) => r.name === 'MinitestReporter')
 
     return {
       jest: safeExtract(jest?.[scenario], extractor),
@@ -706,6 +731,7 @@ describe('Reporters', () => {
       rust: safeExtract(rust?.[scenario], extractor),
       rspec: safeExtract(rspec?.[scenario], extractor),
       storybook: safeExtract(storybook?.[scenario], extractor),
+      minitest: safeExtract(minitest?.[scenario], extractor),
     }
   }
 
