@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name = "tdd-guard-rspec"
-  spec.version = "0.2.0"
+  spec.version = "0.3.0"
   spec.authors = ["Hiro-Chiba"]
   spec.summary = "RSpec formatter for TDD Guard - enforces Test-Driven Development principles"
   spec.description = "RSpec formatter that captures test results for TDD Guard validation."
