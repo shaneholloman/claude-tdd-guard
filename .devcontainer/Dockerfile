@@ -126,6 +126,9 @@ COPY --from=ruby-source /usr/local/include /usr/local/include
 COPY --from=ruby-source /usr/local/etc/gemrc /usr/local/etc/gemrc
 RUN ldconfig
 
+# Install RuboCop
+RUN gem install rubocop -v 1.86.0
+
 # Install Go
 RUN ARCH=$(dpkg --print-architecture) && \
     case ${ARCH} in \
