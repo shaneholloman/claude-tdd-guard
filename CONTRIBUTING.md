@@ -26,7 +26,7 @@ Use conventional commits and communicate the why, not just what. Focus on the re
 
 ### Reporter Contributions
 
-Project root path can be specified so that tests can be run from any directory in the project. For security, validate that the project root path is absolute and that it is the current working directory or an ancestor of it. Relevant cases must be added to reporter integration tests.
+Project root path can be specified so that tests can be run from any directory in the project. Both absolute and relative paths are accepted, and all reporters must support the `TDD_GUARD_PROJECT_ROOT` environment variable. For security, validate that the resolved project root is the current working directory or an ancestor of it. Relevant cases must be added to reporter integration tests. See [ADR-009](docs/adr/009-relax-reporter-project-root-validation.md) and [ADR-010](docs/adr/010-standardize-project-root-env-var.md) for details.
 
 #### Build Error Handling for Compiled and Typed Languages
 
