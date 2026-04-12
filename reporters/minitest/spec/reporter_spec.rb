@@ -557,6 +557,142 @@ RSpec.describe TddGuardMinitest::Reporter do
     end
   end
 
+  describe "unhandledErrors field" do
+    it "builds an unhandled error with name, message, and stack" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.record(build_result(name: "test_passes"))
+          reporter.report
+
+          exc = RuntimeError.new("cleanup failed")
+          exc.set_backtrace([
+            "./test/my_class_test.rb:4:in `block (2 levels) in <top (required)>'",
+            "/path/to/gems/minitest-5.27.0/lib/minitest.rb:10:in `run'"
+          ])
+          reporter.append_unhandled_errors([exc])
+
+          data = JSON.parse(File.read(File.join(storage_dir, default_data_dir, "test.json")))
+          expect(data).to have_key("unhandledErrors")
+          expect(data["unhandledErrors"].length).to eq(1)
+
+          entry = data["unhandledErrors"][0]
+          expect(entry["name"]).to eq("RuntimeError")
+          expect(entry["message"]).to eq("cleanup failed")
+          expect(entry["stack"]).to eq("test/my_class_test.rb:4:in `block (2 levels) in <top (required)>'")
+        end
+      end
+    end
+
+    it "handles namespaced exception class" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.report
+
+          mod = Module.new
+          # Define a named class inside the module for class.name to work
+          stub_const("MyApp::DatabaseError", Class.new(StandardError))
+          exc = MyApp::DatabaseError.new("connection lost")
+          exc.set_backtrace(["./test/db_test.rb:10:in `test_query'"])
+          reporter.append_unhandled_errors([exc])
+
+          data = JSON.parse(File.read(File.join(storage_dir, default_data_dir, "test.json")))
+          expect(data["unhandledErrors"][0]["name"]).to eq("MyApp::DatabaseError")
+        end
+      end
+    end
+
+    it "falls back to anonymous name when exception class has no name" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.report
+
+          anon_class = Class.new(StandardError)
+          exc = anon_class.new("anonymous failure")
+          exc.set_backtrace(["./test/anon_test.rb:5:in `test_it'"])
+          reporter.append_unhandled_errors([exc])
+
+          data = JSON.parse(File.read(File.join(storage_dir, default_data_dir, "test.json")))
+          expect(data["unhandledErrors"][0]["name"]).to eq("(anonymous error class)")
+        end
+      end
+    end
+
+    it "omits stack when backtrace is nil" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.report
+
+          exc = RuntimeError.new("no trace")
+          reporter.append_unhandled_errors([exc])
+
+          data = JSON.parse(File.read(File.join(storage_dir, default_data_dir, "test.json")))
+          expect(data["unhandledErrors"][0]).not_to have_key("stack")
+        end
+      end
+    end
+
+    it "omits stack when backtrace has only gem frames" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.report
+
+          exc = RuntimeError.new("gem-only trace")
+          exc.set_backtrace([
+            "/path/to/gems/minitest-5.27.0/lib/minitest.rb:10:in `run'"
+          ])
+          reporter.append_unhandled_errors([exc])
+
+          data = JSON.parse(File.read(File.join(storage_dir, default_data_dir, "test.json")))
+          expect(data["unhandledErrors"][0]).not_to have_key("stack")
+        end
+      end
+    end
+
+    it "writes all errors when given multiple exceptions" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.report
+
+          errors = %w[first second].map do |msg|
+            exc = RuntimeError.new(msg)
+            exc.set_backtrace(["./test/multi_test.rb:3:in `test_it'"])
+            exc
+          end
+          reporter.append_unhandled_errors(errors)
+
+          data = JSON.parse(File.read(File.join(storage_dir, default_data_dir, "test.json")))
+          expect(data["unhandledErrors"].length).to eq(2)
+          expect(data["unhandledErrors"][0]["message"]).to eq("first")
+          expect(data["unhandledErrors"][1]["message"]).to eq("second")
+        end
+      end
+    end
+
+    it "does not add unhandledErrors key when no errors exist" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          reporter.record(build_result(name: "test_passes"))
+          data = run_and_read_json(reporter, storage_dir)
+
+          expect(data).not_to have_key("unhandledErrors")
+        end
+      end
+    end
+
+    it "does not patch test.json when it does not exist" do
+      Dir.mktmpdir do |tmpdir|
+        create_reporter_in(tmpdir) do |reporter, storage_dir|
+          # Do not call report, so test.json does not exist
+          exc = RuntimeError.new("orphan error")
+          reporter.append_unhandled_errors([exc])
+
+          json_path = File.join(storage_dir, default_data_dir, "test.json")
+          expect(File.exist?(json_path)).to be false
+        end
+      end
+    end
+  end
+
   describe ".handle_load_error" do
     # Helper: run handle_load_error in an isolated tmpdir and return parsed JSON
     def run_handle_load_error_in(tmpdir, exception)

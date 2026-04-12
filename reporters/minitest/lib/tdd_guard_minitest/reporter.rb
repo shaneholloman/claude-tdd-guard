@@ -5,6 +5,12 @@ require "fileutils"
 require "minitest"
 
 module TddGuardMinitest
+  @unhandled_errors = []
+
+  class << self
+    attr_reader :unhandled_errors
+  end
+
   # Minitest reporter that captures test results for TDD Guard validation.
   # Mirrors the RSpec reporter's single-class architecture.
   class Reporter < Minitest::StatisticsReporter
@@ -32,6 +38,22 @@ module TddGuardMinitest
     # to avoid clobbering real results.
     def self.handle_load_error(exception)
       new(StringIO.new).handle_load_error(exception)
+    end
+
+    # Reads the existing test.json, merges in the unhandledErrors field,
+    # and re-writes it. Called from the post-after_run at_exit hook in
+    # autorun.rb after Minitest.after_run blocks have completed.
+    def self.append_unhandled_errors(errors)
+      new(StringIO.new).append_unhandled_errors(errors)
+    end
+
+    def append_unhandled_errors(errors)
+      json_path = File.join(@storage_dir, "test.json")
+      return unless File.exist?(json_path)
+
+      data = JSON.parse(File.read(json_path))
+      data["unhandledErrors"] = errors.map { |e| build_unhandled_error(e) }
+      File.write(json_path, JSON.pretty_generate(data))
     end
 
     def handle_load_error(exception)
@@ -104,6 +126,14 @@ module TddGuardMinitest
           klass.runnable_methods.size
         end
       end
+    end
+
+    def build_unhandled_error(exception)
+      name = exception.class.name || "(anonymous error class)"
+      error = { "name" => name, "message" => exception.message }
+      stack = extract_relevant_stack(exception.backtrace)
+      error["stack"] = stack if stack
+      error
     end
 
     def build_error(failure)
