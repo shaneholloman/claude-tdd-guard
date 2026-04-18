@@ -57,7 +57,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.97",
+    "@anthropic-ai/claude-agent-sdk": ">=0.2.111 <0.2.113",
     "@anthropic-ai/sdk": "^0.82.0",
     "@ast-grep/lang-go": "^0.0.6",
     "@ast-grep/lang-php": "^0.0.7",
