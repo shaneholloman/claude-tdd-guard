@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 import { processHookData, defaultResult } from './processHookData'
 import { testData } from '@testUtils'
 import { UserPromptHandler } from './userPromptHandler'
@@ -18,10 +21,24 @@ const TODO_WRITE_HOOK_DATA = testData.todoWriteOperation()
 
 describe('processHookData', () => {
   let sut: ReturnType<typeof createTestProcessor>
+  const tempDirs: string[] = []
 
   beforeEach(() => {
     sut = createTestProcessor()
   })
+
+  afterEach(async () => {
+    while (tempDirs.length) {
+      const dir = tempDirs.pop()!
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  const makeDir = async (prefix: string): Promise<string> => {
+    const dir = await mkdtemp(join(tmpdir(), prefix))
+    tempDirs.push(dir)
+    return dir
+  }
 
   it('should return a ValidationResult', async () => {
     const hookData = { type: 'test', data: 'some data' }
@@ -61,7 +78,74 @@ describe('processHookData', () => {
 
     const savedModifications = await sut.getModifications()
     const parsedModifications = JSON.parse(savedModifications!)
-    expect(parsedModifications).toEqual(WRITE_HOOK_DATA)
+    expect(parsedModifications).toMatchObject(WRITE_HOOK_DATA)
+  })
+
+  it('should enrich Write operations with old_content from disk', async () => {
+    const { getParsedModifications } = await setupWrite(sut, makeDir, {
+      oldContent: 'previous file contents',
+      newContent: 'new file contents',
+    })
+
+    const saved = await getParsedModifications()
+    expect((saved!.tool_input as { old_content?: string }).old_content).toBe(
+      'previous file contents'
+    )
+  })
+
+  it('should skip enrichment when target is a directory without failing the hook', async () => {
+    const dir = await makeDir('tdd-guard-dir-target-')
+
+    const writeToDirectory = testData.writeOperation({
+      tool_input: { file_path: dir, content: 'new file contents' },
+    })
+
+    await expect(sut.process(writeToDirectory)).resolves.toBeDefined()
+    const savedModifications = await sut.getModifications()
+    const parsed = JSON.parse(savedModifications!)
+    expect(parsed.tool_input.old_content).toBeUndefined()
+  })
+
+  it('should not crash when enrichment sees a Write op with malformed tool_input', async () => {
+    const malformedWrite = {
+      ...testData.writeOperation(),
+      tool_input: { file_path: 42, content: 'whatever' },
+    }
+
+    await expect(sut.process(malformedWrite)).resolves.toBeDefined()
+  })
+
+  it('should not enrich non-Write operations with old_content', async () => {
+    const dir = await makeDir('tdd-guard-non-write-')
+    const filePath = join(dir, 'target.ts')
+    await writeFile(filePath, 'prior contents', 'utf-8')
+
+    const edit = testData.editOperation({
+      tool_input: {
+        file_path: filePath,
+        old_string: 'prior',
+        new_string: 'new',
+      },
+    })
+
+    await sut.process(edit)
+
+    const savedModifications = await sut.getModifications()
+    const parsed = JSON.parse(savedModifications!)
+    expect(parsed.tool_input.old_content).toBeUndefined()
+  })
+
+  it('should not enrich Write operations on PostToolUse events', async () => {
+    const { getParsedModifications } = await setupWrite(sut, makeDir, {
+      oldContent: 'post-write contents on disk',
+      newContent: 'whatever',
+      hookEventName: 'PostToolUse',
+    })
+
+    const saved = await getParsedModifications()
+    expect(
+      (saved!.tool_input as { old_content?: string }).old_content
+    ).toBeUndefined()
   })
 
   it('should call validator with context built from storage', async () => {
@@ -446,6 +530,41 @@ describe('Calculator', () => {
       expect(result).toEqual(defaultResult)
     })
 
+    it('should skip validator when Write adds one new test to existing test file', async () => {
+      const { result, hasBeenValidated } = await setupWrite(sut, makeDir, {
+        fileName: 'calculator.test.ts',
+        oldContent: `it('should add', () => { expect(add(1, 2)).toBe(3) })`,
+        newContent: `it('should add', () => { expect(add(1, 2)).toBe(3) })
+it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
+      })
+
+      expect(hasBeenValidated()).toBe(false)
+      expect(result).toEqual(defaultResult)
+    })
+
+    it('should call validator when Write removes a test from a test file', async () => {
+      const { hasBeenValidated } = await setupWrite(sut, makeDir, {
+        fileName: 'calculator.test.ts',
+        oldContent: `it('should add', () => { expect(add(1, 2)).toBe(3) })
+it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
+        newContent: `it('should add', () => { expect(add(1, 2)).toBe(3) })`,
+      })
+
+      expect(hasBeenValidated()).toBe(true)
+    })
+
+    it('should call validator when Write reformats an existing test without adding new tests', async () => {
+      const { hasBeenValidated } = await setupWrite(sut, makeDir, {
+        fileName: 'calculator.test.ts',
+        oldContent: `it('should add', () => { expect(add(1, 2)).toBe(3) })`,
+        newContent: `it('should add numbers correctly', () => {
+  expect(add(1, 2)).toBe(3)
+})`,
+      })
+
+      expect(hasBeenValidated()).toBe(true)
+    })
+
     it('should call validator when Edit adds two new tests', async () => {
       const editAddingTwoTests = {
         ...EDIT_HOOK_DATA,
@@ -592,16 +711,53 @@ function createTestProcessor() {
     storage,
     process,
     populateStorage,
-    
+
     // Storage accessors
     getModifications: (): Promise<string | null> => storage.getModifications(),
     getTest: (): Promise<string | null> => storage.getTest(),
     getTodo: (): Promise<string | null> => storage.getTodo(),
     getLint: (): Promise<string | null> => storage.getLint(),
     getConfig: (): Promise<string | null> => storage.getConfig(),
-    
+
     // Validator checks
     validatorHasBeenCalled: (): boolean => mockValidator.mock.calls.length > 0,
     getValidatorCallArgs: (): Context | null => mockValidator.mock.calls[0]?.[0] ?? null,
+  }
+}
+
+interface SetupWriteOptions {
+  oldContent?: string
+  newContent: string
+  fileName?: string
+  hookEventName?: string
+}
+
+async function setupWrite(
+  sut: ReturnType<typeof createTestProcessor>,
+  makeDir: (prefix: string) => Promise<string>,
+  options: SetupWriteOptions
+) {
+  const dir = await makeDir('tdd-guard-')
+  const filePath = join(dir, options.fileName ?? 'target.ts')
+  if (options.oldContent !== undefined) {
+    await writeFile(filePath, options.oldContent, 'utf-8')
+  }
+  const base = testData.writeOperation({
+    tool_input: { file_path: filePath, content: options.newContent },
+  })
+  const writeOp: Record<string, unknown> = options.hookEventName
+    ? { ...base, hook_event_name: options.hookEventName }
+    : { ...base }
+
+  const result = await sut.process(writeOp)
+
+  return {
+    filePath,
+    result,
+    hasBeenValidated: (): boolean => sut.validatorHasBeenCalled(),
+    getParsedModifications: async (): Promise<Record<string, unknown> | null> => {
+      const saved = await sut.getModifications()
+      return saved ? JSON.parse(saved) : null
+    },
   }
 }

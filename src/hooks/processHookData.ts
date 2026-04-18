@@ -13,12 +13,14 @@ import { Context } from '../contracts/types/Context'
 import { countTestDefinitions } from './testCounter'
 import {
   HookDataSchema, isTodoWriteOperation, ToolOperationSchema,
+  WriteOperationSchema,
   isEditOperation, isMultiEditOperation, isWriteOperation,
   type ToolOperation
 } from '../contracts/schemas/toolSchemas'
 import { PytestResultSchema } from '../contracts/schemas/pytestSchemas'
 import { isTestPassing, TestResultSchema } from '../contracts/schemas/reporterSchemas'
 import { LintDataSchema } from '../contracts/schemas/lintSchemas'
+import { readOldFileContent } from './readOldFileContent'
 
 export interface ProcessHookDataDeps {
   storage?: Storage
@@ -51,22 +53,41 @@ function extractFilePath(parsedData: unknown): string | null {
   return filePath
 }
 
+async function enrichWriteOperation(parsedData: unknown): Promise<void> {
+  const parsed = WriteOperationSchema.safeParse(parsedData)
+  if (!parsed.success) return
+  if (parsed.data.hook_event_name !== 'PreToolUse') return
+
+  const toolInput = (parsedData as { tool_input: Record<string, unknown> })
+    .tool_input
+  try {
+    toolInput.old_content = await readOldFileContent(
+      parsed.data.tool_input.file_path
+    )
+  } catch {
+    // Unreadable for reasons other than ENOENT (e.g., EISDIR, EACCES);
+    // skip enrichment rather than failing the hook.
+  }
+}
+
 export async function processHookData(
   inputData: string,
   deps: ProcessHookDataDeps = {}
 ): Promise<ValidationResult> {
   const parsedData = JSON.parse(inputData)
-  
+
   // Initialize dependencies
   const storage = deps.storage ?? new FileStorage()
   const guardManager = new GuardManager(storage)
   const userPromptHandler = deps.userPromptHandler ?? new UserPromptHandler(guardManager)
-  
+
   // Skip validation for ignored files based on patterns
   const filePath = extractFilePath(parsedData)
   if (filePath && await guardManager.shouldIgnoreFile(filePath)) {
     return defaultResult
   }
+
+  await enrichWriteOperation(parsedData)
   const sessionHandler = new SessionHandler(storage)
   
   // Process SessionStart events
@@ -164,25 +185,37 @@ function getFilePath(operation: ToolOperation): string | null {
   return null
 }
 
+function diffTestCount(
+  oldContent: string | undefined,
+  newContent: string,
+  language: Language
+): number {
+  const newCount = countTestDefinitions(newContent, language)
+  const oldCount = oldContent ? countTestDefinitions(oldContent, language) : 0
+  return newCount - oldCount
+}
+
 function countAddedTests(operation: ToolOperation, language: Language): number {
   if (isEditOperation(operation)) {
-    const newCount = countTestDefinitions(operation.tool_input.new_string, language)
-    const oldCount = operation.tool_input.old_string
-      ? countTestDefinitions(operation.tool_input.old_string, language)
-      : 0
-    return newCount - oldCount
+    return diffTestCount(
+      operation.tool_input.old_string,
+      operation.tool_input.new_string,
+      language
+    )
   }
   if (isWriteOperation(operation)) {
-    return countTestDefinitions(operation.tool_input.content, language)
+    return diffTestCount(
+      operation.tool_input.old_content,
+      operation.tool_input.content,
+      language
+    )
   }
   if (isMultiEditOperation(operation)) {
-    return operation.tool_input.edits.reduce((total, edit) => {
-      const newCount = countTestDefinitions(edit.new_string, language)
-      const oldCount = edit.old_string
-        ? countTestDefinitions(edit.old_string, language)
-        : 0
-      return total + (newCount - oldCount)
-    }, 0)
+    return operation.tool_input.edits.reduce(
+      (total, edit) =>
+        total + diffTestCount(edit.old_string, edit.new_string, language),
+      0
+    )
   }
   return 0
 }

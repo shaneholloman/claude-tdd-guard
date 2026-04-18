@@ -79,7 +79,8 @@ describe('tdd-guard CLI', () => {
       await run(JSON.stringify(hookData), testConfig, storage, modelProvider)
 
       const savedModifications = await storage.getModifications()
-      expect(JSON.parse(savedModifications!)).toStrictEqual(hookData)
+      // toMatchObject: the saved record also has old_content from enrichment
+      expect(JSON.parse(savedModifications!)).toMatchObject(hookData)
     })
 
     test('saves TodoWrite data', async () => {
