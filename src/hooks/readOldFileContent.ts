@@ -1,12 +1,14 @@
-import { readFile, stat } from 'node:fs/promises'
+import { open } from 'node:fs/promises'
 
 const MAX_OLD_CONTENT_BYTES = 262_144
 
 export async function readOldFileContent(filePath: string): Promise<string> {
+  let handle: Awaited<ReturnType<typeof open>> | undefined
   try {
-    const stats = await stat(filePath)
+    handle = await open(filePath, 'r')
+    const stats = await handle.stat()
     if (stats.size > MAX_OLD_CONTENT_BYTES) return ''
-    return await readFile(filePath, 'utf-8')
+    return await handle.readFile('utf-8')
   } catch (error) {
     if (
       error instanceof Error &&
@@ -15,5 +17,7 @@ export async function readOldFileContent(filePath: string): Promise<string> {
       return ''
     }
     throw error
+  } finally {
+    await handle?.close()
   }
 }
