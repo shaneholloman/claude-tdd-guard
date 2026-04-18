@@ -21,7 +21,8 @@ describe('readOldFileContent', () => {
   }
 
   it('returns empty string when the file does not exist', async () => {
-    const missingPath = join(tmpdir(), 'tdd-guard-missing-file-xyz.txt')
+    const dir = await makeDir('tdd-guard-missing-')
+    const missingPath = join(dir, 'missing-file.txt')
     await expect(readOldFileContent(missingPath)).resolves.toBe('')
   })
 
