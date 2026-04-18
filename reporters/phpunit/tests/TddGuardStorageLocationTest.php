@@ -20,7 +20,9 @@ final class TddGuardStorageLocationTest extends TestCase
         $this->filesystem = new Filesystem();
         $this->tempDir = sys_get_temp_dir() . '/tdd-guard-test-' . uniqid();
         $this->filesystem->mkdir($this->tempDir);
-        $this->originalCwd = getcwd();
+        $cwd = getcwd();
+        $this->assertNotFalse($cwd);
+        $this->originalCwd = $cwd;
         chdir($this->tempDir);
     }
 

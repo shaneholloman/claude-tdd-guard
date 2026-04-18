@@ -26,6 +26,14 @@ final class TddGuardExtensionTest extends TestCase
         $this->filesystem->remove($this->tempDir);
     }
 
+    private function readJsonFile(string $path): string
+    {
+        $contents = file_get_contents($path);
+        $this->assertNotFalse($contents);
+
+        return $contents;
+    }
+
     public function testExtensionCapturesPassingTest(): void
     {
         // Given: A test file that will pass
@@ -68,7 +76,7 @@ class ExampleTest extends TestCase {
         $this->assertEquals(0, $returnCode, 'PHPUnit should exit with 0. Output: ' . implode("\n", $output));
         $jsonPath = $this->tempDir . '/.claude/tdd-guard/data/test.json';
         $this->assertFileExists($jsonPath);
-        $data = json_decode(file_get_contents($jsonPath), true);
+        $data = json_decode($this->readJsonFile($jsonPath), true);
         $this->assertArrayHasKey('testModules', $data);
         $this->assertCount(1, $data['testModules']);
         $this->assertArrayHasKey('reason', $data);

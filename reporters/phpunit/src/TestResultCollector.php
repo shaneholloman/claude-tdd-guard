@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace TddGuard\PHPUnit;
 
+use PHPUnit\Event\Code\Test;
+use PHPUnit\Event\Code\TestMethod;
+
 final class TestResultCollector
 {
     private array $testResults = [];
@@ -16,8 +19,16 @@ final class TestResultCollector
         $this->projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
     }
 
-    public function addTestResult($test, string $state, ?string $message = null): void
+    public function addTestResult(Test $test, string $state, ?string $message = null): void
     {
+        if (!$test instanceof TestMethod) {
+            throw new \LogicException(sprintf(
+                'Expected %s, got %s',
+                TestMethod::class,
+                $test::class
+            ));
+        }
+
         $testName = $test->name();
         $className = $test->className();
         $fullName = $className . '::' . $testName;
@@ -36,9 +47,12 @@ final class TestResultCollector
 
         try {
             $reflection = new \ReflectionClass($className);
-            $moduleId = $this->getRelativePath($reflection->getFileName());
-        } catch (\ReflectionException $e) {
-            $moduleId = str_replace('\\', '/', (string) $className) . '.php';
+            $fileName = $reflection->getFileName();
+            $moduleId = $fileName === false
+                ? str_replace('\\', '/', $className) . '.php'
+                : $this->getRelativePath($fileName);
+        } catch (\ReflectionException) {
+            $moduleId = str_replace('\\', '/', $className) . '.php';
         }
 
         $this->testResults[] = [
@@ -56,7 +70,7 @@ final class TestResultCollector
         }
 
         $cwd = getcwd();
-        if (str_starts_with($absolutePath, $cwd)) {
+        if ($cwd !== false && str_starts_with($absolutePath, $cwd)) {
             $relativePath = substr($absolutePath, strlen($cwd) + 1);
 
             return str_replace(DIRECTORY_SEPARATOR, '/', $relativePath);
@@ -100,6 +114,11 @@ final class TestResultCollector
             'reason' => $hasFailures ? 'failed' : 'passed',
         ];
 
-        $this->storage->saveTest(json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $encoded = json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            throw new \RuntimeException('Failed to encode test results: ' . json_last_error_msg());
+        }
+
+        $this->storage->saveTest($encoded);
     }
 }

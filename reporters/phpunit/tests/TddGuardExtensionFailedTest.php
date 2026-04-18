@@ -26,6 +26,14 @@ final class TddGuardExtensionFailedTest extends TestCase
         $this->filesystem->remove($this->tempDir);
     }
 
+    private function readJsonFile(string $path): string
+    {
+        $contents = file_get_contents($path);
+        $this->assertNotFalse($contents);
+
+        return $contents;
+    }
+
     public function testExtensionCapturesFailedTest(): void
     {
         // Given: A test file with a failing test
@@ -68,7 +76,7 @@ class FailingTest extends TestCase {
         $this->assertNotEquals(0, $returnCode, 'PHPUnit should exit with non-zero');
         $jsonPath = $this->tempDir . '/.claude/tdd-guard/data/test.json';
         $this->assertFileExists($jsonPath);
-        $data = json_decode(file_get_contents($jsonPath), true);
+        $data = json_decode($this->readJsonFile($jsonPath), true);
         $this->assertArrayHasKey('testModules', $data);
         $this->assertArrayHasKey('reason', $data);
         $this->assertEquals('failed', $data['reason']);
@@ -124,7 +132,7 @@ class ErroredTest extends TestCase {
         $this->assertNotEquals(0, $returnCode, 'PHPUnit should exit with non-zero');
         $jsonPath = $this->tempDir . '/.claude/tdd-guard/data/test.json';
         $this->assertFileExists($jsonPath);
-        $data = json_decode(file_get_contents($jsonPath), true);
+        $data = json_decode($this->readJsonFile($jsonPath), true);
         $this->assertArrayHasKey('reason', $data);
         $this->assertEquals('failed', $data['reason']);
 
@@ -186,7 +194,7 @@ class ErrorTest extends TestCase
         $this->assertNotEquals(0, $returnCode, 'PHPUnit should exit with non-zero');
         $jsonPath = $this->tempDir . '/.claude/tdd-guard/data/test.json';
         $this->assertFileExists($jsonPath);
-        $data = json_decode(file_get_contents($jsonPath), true);
+        $data = json_decode($this->readJsonFile($jsonPath), true);
 
         $test = $data['testModules'][0]['tests'][0];
         $this->assertEquals('failed', $test['state'], 'Errored test should be normalized to failed state');
@@ -234,7 +242,7 @@ class SkippedTest extends TestCase {
         // Then: The skipped test should be recorded
         $jsonPath = $this->tempDir . '/.claude/tdd-guard/data/test.json';
         $this->assertFileExists($jsonPath);
-        $data = json_decode(file_get_contents($jsonPath), true);
+        $data = json_decode($this->readJsonFile($jsonPath), true);
         $this->assertArrayHasKey('reason', $data);
         $this->assertEquals('passed', $data['reason']);
         $module = $data['testModules'][0];

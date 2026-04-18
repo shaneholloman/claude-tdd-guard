@@ -20,7 +20,9 @@ final class PathValidatorTest extends TestCase
         $this->filesystem = new Filesystem();
         $this->tempDir = sys_get_temp_dir() . '/tdd-guard-path-test-' . uniqid();
         $this->filesystem->mkdir($this->tempDir);
-        $this->originalCwd = getcwd();
+        $cwd = getcwd();
+        $this->assertNotFalse($cwd);
+        $this->originalCwd = $cwd;
     }
 
     #[\Override]
@@ -117,7 +119,7 @@ final class PathValidatorTest extends TestCase
         // Given: A configured root that would normally validate (cwd is inside it)
         chdir($this->tempDir);
         // But a cwd provider that simulates getcwd() failing
-        $cwdProvider = static fn(): false => false;
+        $cwdProvider = static fn (): false => false;
 
         // Then: Should throw exception
         $this->expectException(\InvalidArgumentException::class);

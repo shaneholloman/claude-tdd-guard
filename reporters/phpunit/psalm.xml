@@ -23,17 +23,7 @@
                 <directory name="tests" />
             </errorLevel>
         </PropertyNotSetInConstructor>
-        <MissingConstructor>
-            <errorLevel type="suppress">
-                <directory name="tests" />
-            </errorLevel>
-        </MissingConstructor>
-        <UnusedClass>
-            <errorLevel type="suppress">
-                <directory name="tests" />
-            </errorLevel>
-        </UnusedClass>
-        
+
         <!-- PHPUnit 9.x compatibility - TestListener interface was removed in PHPUnit 10 -->
         <UndefinedClass>
             <errorLevel type="suppress">
