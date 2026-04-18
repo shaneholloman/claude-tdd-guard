@@ -14,6 +14,7 @@ final class TddGuardStorageLocationTest extends TestCase
     private Filesystem $filesystem;
     private string $originalCwd;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->filesystem = new Filesystem();
@@ -23,6 +24,7 @@ final class TddGuardStorageLocationTest extends TestCase
         chdir($this->tempDir);
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         chdir($this->originalCwd);

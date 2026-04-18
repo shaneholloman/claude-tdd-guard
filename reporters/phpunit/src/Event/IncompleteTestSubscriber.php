@@ -17,6 +17,7 @@ final class IncompleteTestSubscriber implements MarkedIncompleteSubscriber
         $this->collector = $collector;
     }
 
+    #[\Override]
     public function notify(MarkedIncomplete $event): void
     {
         $this->collector->addTestResult(

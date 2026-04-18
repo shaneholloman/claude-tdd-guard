@@ -17,6 +17,7 @@ final class FailedTestSubscriber implements FailedSubscriber
         $this->collector = $collector;
     }
 
+    #[\Override]
     public function notify(Failed $event): void
     {
         $this->collector->addTestResult(

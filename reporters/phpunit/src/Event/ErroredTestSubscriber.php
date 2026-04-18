@@ -17,6 +17,7 @@ final class ErroredTestSubscriber implements ErroredSubscriber
         $this->collector = $collector;
     }
 
+    #[\Override]
     public function notify(Errored $event): void
     {
         $this->collector->addTestResult(

@@ -17,6 +17,7 @@ final class PassedTestSubscriber implements PassedSubscriber
         $this->collector = $collector;
     }
 
+    #[\Override]
     public function notify(Passed $event): void
     {
         $this->collector->addTestResult(

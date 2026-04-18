@@ -12,6 +12,7 @@ final class TddGuardExtensionFailedTest extends TestCase
     private string $tempDir;
     private Filesystem $filesystem;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->filesystem = new Filesystem();
@@ -19,6 +20,7 @@ final class TddGuardExtensionFailedTest extends TestCase
         $this->filesystem->mkdir($this->tempDir);
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         $this->filesystem->remove($this->tempDir);

@@ -17,6 +17,7 @@ final class SkippedTestSubscriber implements SkippedSubscriber
         $this->collector = $collector;
     }
 
+    #[\Override]
     public function notify(Skipped $event): void
     {
         $this->collector->addTestResult(

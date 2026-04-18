@@ -17,6 +17,7 @@ final class TestRunnerFinishedSubscriber implements FinishedSubscriber
         $this->collector = $collector;
     }
 
+    #[\Override]
     public function notify(Finished $event): void
     {
         $this->collector->saveResults();
