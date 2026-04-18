@@ -7,6 +7,7 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.nio.file.Path;
+import java.util.function.Function;
 
 /**
  * JUnit5 Platform {@code TestExecutionListener} that writes test results
@@ -26,22 +27,24 @@ public final class TddGuardListener implements TestExecutionListener {
 
     private final ProjectRootResolver resolver;
     private final TestJsonWriter writer;
+    private final Function<String, String> envAccessor;
 
     private TestResultCollector collector;
     private Path outputDir;
 
     public TddGuardListener() {
-        this(new ProjectRootResolver(), new TestJsonWriter());
+        this(new ProjectRootResolver(), new TestJsonWriter(), System::getenv);
     }
 
-    TddGuardListener(ProjectRootResolver resolver, TestJsonWriter writer) {
+    TddGuardListener(ProjectRootResolver resolver, TestJsonWriter writer, Function<String, String> envAccessor) {
         this.resolver = resolver;
         this.writer = writer;
+        this.envAccessor = envAccessor;
     }
 
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
-        String envValue = System.getenv(ProjectRootResolver.ENV_VAR);
+        String envValue = envAccessor.apply(ProjectRootResolver.ENV_VAR);
         if (envValue == null || envValue.isEmpty()) {
             return;
         }
