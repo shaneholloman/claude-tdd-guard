@@ -65,6 +65,7 @@ export type MultiEdit = z.infer<typeof MultiEditSchema>
 export const WriteSchema = z.object({
   file_path: z.string(),
   content: z.string(),
+  old_content: z.string().optional(),
 })
 
 export type Write = z.infer<typeof WriteSchema>

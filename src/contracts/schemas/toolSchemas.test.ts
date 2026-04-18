@@ -225,6 +225,11 @@ describe('Tool-specific schemas', () => {
         write: testData.writeWithout(['content']),
         expectedSuccess: false,
       },
+      {
+        description: 'with old_content',
+        write: testData.write({ old_content: 'prior contents' }),
+        expectedSuccess: true,
+      },
     ])('$description', ({ write, expectedSuccess }) => {
       const result = WriteSchema.safeParse(write)
       expect(result.success).toBe(expectedSuccess)

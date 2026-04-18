@@ -22,12 +22,17 @@ export function createOperation(
 
 export function createWriteOperation(
   filePath: string,
-  content: string
+  content: string,
+  oldContent?: string
 ): string {
-  return createOperation('Write', {
+  const toolInput: Write = {
     file_path: filePath,
     content,
-  })
+  }
+  if (oldContent !== undefined && oldContent !== '') {
+    toolInput.old_content = oldContent
+  }
+  return createOperation('Write', toolInput)
 }
 
 export function createEditOperation(

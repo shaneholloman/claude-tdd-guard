@@ -13,10 +13,20 @@ import { TEST_DEFAULTS } from './testDefaults'
  * Creates a single write object
  * @param params - Optional parameters for the write
  */
-export const write = (params?: Partial<Write>): Write => ({
-  file_path: params?.file_path ?? TEST_DEFAULTS.write.file_path,
-  content: params?.content ?? TEST_DEFAULTS.write.content,
-})
+export const write = (params?: Partial<Write>): Write => {
+  const base = params ?? {}
+
+  const result: Write = {
+    file_path: base.file_path ?? TEST_DEFAULTS.write.file_path,
+    content: base.content ?? TEST_DEFAULTS.write.content,
+  }
+
+  if (base.old_content !== undefined) {
+    result.old_content = base.old_content
+  }
+
+  return result
+}
 
 /**
  * Creates a write object with specified properties omitted
