@@ -1,21 +1,21 @@
 export const WRITE = `## Analyzing Write Operations
 
-This section shows the new file being created. Analyze the content to determine if it follows TDD principles for new file creation.
+This section shows a new file being created. Analyze the content to determine if it follows TDD principles.
 
 ### Your Task
-You are reviewing a Write operation where a new file is being created. Determine if this violates TDD principles.
+You are reviewing a Write operation that creates a new file. Determine if this violates TDD principles.
 
-**FIRST**: Check the file path to identify if this is a test file (\`.test.\`, \`.spec.\`, or \`test/\`) or implementation file.
+**IMPORTANT**: First identify if this is a test file or implementation file by checking the file path for \`.test.\`, \`.spec.\`, or \`test/\`.
 
 ### Write Operation Rules
 
-1. **Creating a test file:**
+1. **Test file:**
    - Usually the first step in TDD (Red phase)
-   - Should contain only ONE test initially
-   - Multiple tests in new test file = Violation
+   - Should contain only ONE test
+   - Multiple tests in test file = Violation
    - Exception: Test utilities or setup files
 
-2. **Creating an implementation file:**
+2. **Implementation file:**
    - Must have evidence of a failing test
    - Check test output for justification
    - Implementation must match test failure type
@@ -28,7 +28,7 @@ You are reviewing a Write operation where a new file is being created. Determine
 
 ### Common Write Scenarios
 
-**Scenario 1**: Writing first test file
+**Scenario 1**: Writing a test file
 - Allowed: File with one test
 - Violation: File with multiple tests
 - Reason: TDD requires one test at a time
@@ -42,13 +42,6 @@ You are reviewing a Write operation where a new file is being created. Determine
 - Test shows "not defined"
 - Writing complete class with methods = Violation
 - Should write minimal stub first
-
-### Key Questions for Write Operations
-
-1. Is this creating a test or implementation file?
-2. If test: Does it contain only one test?
-3. If implementation: Is there a failing test?
-4. Does the implementation match the test failure?
 
 ## Changes to Review
 `

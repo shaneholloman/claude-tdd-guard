@@ -23,6 +23,7 @@ import { RESPONSE } from '../prompts/response'
 import { EDIT } from '../prompts/operations/edit'
 import { MULTI_EDIT } from '../prompts/operations/multi-edit'
 import { WRITE } from '../prompts/operations/write'
+import { OVERWRITE } from '../prompts/operations/overwrite'
 import { TODOS } from '../prompts/tools/todos'
 import { TEST_OUTPUT } from '../prompts/tools/test-output'
 import { LINT_RESULTS } from '../prompts/tools/lint-results'
@@ -65,7 +66,8 @@ function formatOperation(operation: ToolOperation): string {
   }
 
   if (isWriteOperation(operation)) {
-    return WRITE + formatWriteOperation(operation)
+    const prompt = operation.tool_input.old_content ? OVERWRITE : WRITE
+    return prompt + formatWriteOperation(operation)
   }
 
   return ''
@@ -91,8 +93,12 @@ function formatMultiEditOperation(operation: MultiEditOperation): string {
 }
 
 function formatWriteOperation(operation: WriteOperation): string {
+  const oldContentSection = operation.tool_input.old_content
+    ? formatSection('Old File Content', operation.tool_input.old_content)
+    : ''
   return (
     formatSection('File Path', operation.tool_input.file_path) +
+    oldContentSection +
     formatSection('New File Content', operation.tool_input.content)
   )
 }

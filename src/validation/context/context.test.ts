@@ -9,6 +9,7 @@ import { RESPONSE } from '../prompts/response'
 import { EDIT } from '../prompts/operations/edit'
 import { MULTI_EDIT } from '../prompts/operations/multi-edit'
 import { WRITE } from '../prompts/operations/write'
+import { OVERWRITE } from '../prompts/operations/overwrite'
 import { TODOS } from '../prompts/tools/todos'
 import { TEST_OUTPUT } from '../prompts/tools/test-output'
 import { Config } from '../../config/Config'
@@ -127,6 +128,33 @@ describe('generateDynamicContext', () => {
     test('should format new file content section', () => {
       expect(result).toContain('### New File Content')
       expect(result).toContain(writeOperation.tool_input.content)
+    })
+
+    test('should format old file content section when old_content is present', () => {
+      const overwriteOperation = testData.writeOperation({
+        tool_input: {
+          file_path: '/test/file.ts',
+          content: 'new contents',
+          old_content: 'previous contents',
+        },
+      })
+      const overwriteResult = generateContextResult(overwriteOperation)
+      expect(overwriteResult).toContain('### Old File Content')
+      expect(overwriteResult).toContain('previous contents')
+    })
+
+    test('should route overwrite operations to the OVERWRITE prompt', () => {
+      const overwriteOperation = testData.writeOperation({
+        tool_input: {
+          file_path: '/test/file.ts',
+          content: 'new contents',
+          old_content: 'previous contents',
+        },
+      })
+      const overwriteResult = generateContextResult(overwriteOperation)
+      expect(OVERWRITE.length).toBeGreaterThan(0)
+      expect(overwriteResult).toContain(OVERWRITE)
+      expect(overwriteResult).not.toContain(WRITE)
     })
   })
 
