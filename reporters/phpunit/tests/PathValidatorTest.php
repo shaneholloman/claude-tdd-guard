@@ -111,4 +111,19 @@ final class PathValidatorTest extends TestCase
         // When: Trying to use sibling directory as project root
         PathValidator::resolveProjectRoot($dir2);
     }
+
+    public function testRejectsWhenCwdProviderFails(): void
+    {
+        // Given: A configured root that would normally validate (cwd is inside it)
+        chdir($this->tempDir);
+        // But a cwd provider that simulates getcwd() failing
+        $cwdProvider = static fn(): false => false;
+
+        // Then: Should throw exception
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Configured project root is invalid');
+
+        // When: Resolving with the failing cwd provider
+        PathValidator::resolveProjectRoot($this->tempDir, $cwdProvider);
+    }
 }

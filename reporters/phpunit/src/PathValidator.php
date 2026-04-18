@@ -6,10 +6,12 @@ namespace TddGuard\PHPUnit;
 
 final class PathValidator
 {
-    public static function resolveProjectRoot(string $configuredRoot): string
+    public static function resolveProjectRoot(string $configuredRoot, ?callable $cwdProvider = null): string
     {
+        $cwdProvider ??= 'getcwd';
+
         if ($configuredRoot !== '') {
-            $validated = self::validateProjectRoot($configuredRoot);
+            $validated = self::validateProjectRoot($configuredRoot, $cwdProvider);
             if ($validated === null) {
                 throw new \InvalidArgumentException('Configured project root is invalid');
             }
@@ -19,7 +21,7 @@ final class PathValidator
 
         $envRoot = getenv('TDD_GUARD_PROJECT_ROOT');
         if ($envRoot !== false && $envRoot !== '') {
-            $validated = self::validateProjectRoot($envRoot);
+            $validated = self::validateProjectRoot($envRoot, $cwdProvider);
             if ($validated === null) {
                 throw new \InvalidArgumentException('TDD_GUARD_PROJECT_ROOT is invalid');
             }
@@ -32,7 +34,7 @@ final class PathValidator
         );
     }
 
-    private static function validateProjectRoot(string $path): ?string
+    private static function validateProjectRoot(string $path, callable $cwdProvider): ?string
     {
         if ($path === '') {
             return null;
@@ -47,7 +49,12 @@ final class PathValidator
             return null;
         }
 
-        $cwd = realpath(getcwd());
+        $rawCwd = $cwdProvider();
+        if (!is_string($rawCwd)) {
+            return null;
+        }
+
+        $cwd = realpath($rawCwd);
         if ($cwd === false) {
             return null;
         }
