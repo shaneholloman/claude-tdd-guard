@@ -465,7 +465,7 @@ function createModificationString(
   const oldString = scenario.oldContent?.content ?? ''
 
   const operationCreators: Record<OperationType, () => string> = {
-    Write: () => createWriteOperation(scenario.filePath, newString),
+    Write: () => createWriteOperation(scenario.filePath, newString, oldString),
     Edit: () => createEditOperation(scenario.filePath, oldString, newString),
     MultiEdit: () =>
       createMultiEditOperation(scenario.filePath, [
