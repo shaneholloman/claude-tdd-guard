@@ -13,6 +13,7 @@
 # - Go reporter dependencies
 # - Rust reporter dependencies
 # - RSpec reporter dependencies
+# - Minitest reporter dependencies
 #
 # REQUIREMENTS:
 # - Must be run from the workspace root
@@ -60,10 +61,12 @@ echo ""
 echo "🐹 Setting up Go reporter dependencies..."
 go mod download -C reporters/go
 
-# 7. Install Ruby/RSpec dependencies
+# 7. Install Ruby reporter dependencies (RSpec, Minitest)
 echo ""
-echo "💎 Installing RSpec reporter dependencies..."
-bundle install --gemfile=reporters/rspec/Gemfile
+echo "💎 Installing Ruby reporter dependencies..."
+for dir in reporters/rspec reporters/minitest; do
+  (cd "$dir" && bundle config set --local path vendor/bundle && bundle install)
+done
 
 # 8. Build Rust reporter
 echo ""
