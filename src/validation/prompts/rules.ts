@@ -53,6 +53,6 @@ No new logic is permitted at this step. Ask the agent if they forgot to stub.
 ### General Information
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - When a test-file diff restructures existing tests (new names, reordered, combined, split) and the intent isn't clearly "add many new tests," default to approval. The one-new-test rule is about intent to add behavior, not surface diff count.
-- During refactor (tests green), adding types, interfaces, constants, or helpers that don't introduce new runtime behavior is allowed — whether the destination is an existing file or a new file. Location doesn't change whether behavior is introduced.
+- During refactor (tests green), extraction into an existing or new file is allowed — types, constants, helpers, or functions whose behavior already lives elsewhere and is covered by existing tests. A function whose behavior appears nowhere else is net-new, not extraction, and requires a failing test first.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
 `
