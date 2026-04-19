@@ -30,6 +30,7 @@ When blocking, your reason must:
 #### Example Approval Reasons:
 - "Adding single test to test file - follows TDD red phase"
 - "Minimal implementation addressing specific test failure"
+- "Stubbing impl (signature + minimal body) to surface a clean assertion — reaching Red, not Refactoring"
 - "Refactoring with evidence of passing tests"
 
 ### Focus
