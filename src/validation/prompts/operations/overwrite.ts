@@ -17,7 +17,9 @@ Adding ONE **new** test (as counted above) is allowed without a failing test out
 ### Analyzing Implementation File Overwrites
 
 ${MATCH_FAILURE_TYPE}
-**Exception**: Refactor during green — extracting types, constants, helpers, or functions whose behavior already lives elsewhere (not net-new logic) is allowed.
+**Exceptions during refactor (tests green)**:
+- Adding types, interfaces, or constants is always allowed; no runtime behavior by construction.
+- Extracting helpers or functions whose behavior already lives elsewhere (not net-new logic) is allowed.
 
 ## Changes to Review
 `

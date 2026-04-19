@@ -21,6 +21,10 @@ ${COUNT_NEW_TESTS}
 **For implementation files**:
 
 ${MATCH_FAILURE_TYPE}
+**Exceptions during refactor (tests green)**:
+- Adding types, interfaces, or constants is always allowed; no runtime behavior by construction.
+- Extracting helpers or functions whose behavior already lives elsewhere (not net-new logic) is allowed.
+
 ### Example Analysis
 
 **Scenario**: Test can't locate \`Calculator\` (import/symbol unresolved)

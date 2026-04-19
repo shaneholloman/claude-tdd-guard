@@ -31,6 +31,7 @@ When blocking, your reason must:
 - "Adding single test to test file - follows TDD red phase"
 - "Minimal implementation addressing specific test failure"
 - "Stubbing impl (signature + minimal body) to surface a clean assertion — reaching Red, not Refactoring"
+- "Adding pure type declarations during refactor — no runtime behavior, no failing test needed"
 - "Extracting existing behavior into a new module — covered by existing tests, no net-new logic"
 - "Refactoring with evidence of passing tests"
 

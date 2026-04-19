@@ -20,7 +20,8 @@ You are reviewing a Write operation that creates a new file. Determine if this v
    - Check test output for justification
    - Implementation must match test failure type
    - No test output = Likely violation
-   - Exception: Refactor during green — extracting types, constants, helpers, or functions whose behavior already lives elsewhere (not net-new logic)
+   - Exception (types/constants): Refactor during green — adding types, interfaces, or constants is always allowed; no runtime behavior by construction
+   - Exception (helpers/functions): Refactor during green — extracting helpers or functions is allowed when their behavior already lives elsewhere (not net-new logic)
 
 3. **Special considerations:**
    - Configuration files: Generally allowed

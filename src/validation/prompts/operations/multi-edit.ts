@@ -40,6 +40,10 @@ You are reviewing a MultiEdit operation where multiple edits are being applied t
    - But this doesn't justify multiple new tests
    - Each edit should still follow minimal implementation
 
+**Exceptions during refactor (tests green)**:
+- Adding types, interfaces, or constants is always allowed; no runtime behavior by construction.
+- Extracting helpers or functions whose behavior already lives elsewhere (not net-new logic) is allowed.
+
 ### Example MultiEdit Analysis
 
 **Edit 1**: Adds empty Calculator class
