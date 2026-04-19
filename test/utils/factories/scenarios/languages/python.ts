@@ -283,14 +283,42 @@ from calculator import Calculator
 class TestCalculator:
     def setup_method(self):
         self.calculator = Calculator()
-    
+
     def test_adds_two_numbers(self):
         result = self.calculator.add(2, 2)
         assert result == 4
-    
+
     def test_subtracts_two_numbers(self):
         result = self.calculator.subtract(8, 2)
         assert result == 6
+`,
+  },
+  typesOnly: {
+    description: 'types-only module (pure shape types, extraction candidate)',
+    content: `from typing import Tuple
+
+CalculatorInput = Tuple[float, float]
+CalculatorResult = float
+`,
+  },
+  typesWithBehavior: {
+    description: 'types plus a stateful feature class (clearly new behavior)',
+    content: `from typing import Tuple
+
+CalculatorInput = Tuple[float, float]
+
+class CalculationHistory:
+    def __init__(self) -> None:
+        self._entries = []
+
+    def record(self, op: str, input: CalculatorInput, result: float) -> None:
+        self._entries.append({'op': op, 'input': input, 'result': result})
+
+    def count(self) -> int:
+        return len(self._entries)
+
+    def last(self):
+        return self._entries[-1] if self._entries else None
 `,
   },
 } as const
@@ -405,6 +433,45 @@ class Calculator:
         if b == 0:
             raise ValueError("Cannot divide by zero")
         return a / b
+`,
+  },
+  classWithTypes: {
+    description:
+      'existing class with pure shape types prepended (extraction target)',
+    content: `from typing import Tuple
+
+CalculatorInput = Tuple[float, float]
+CalculatorResult = float
+
+class Calculator:
+    def add(self, a: int, b: int) -> int:
+        return a + b
+`,
+  },
+  classWithTypesAndFunction: {
+    description:
+      'existing class plus types, a custom error class, validator, and a new method wired to them',
+    content: `from typing import Tuple
+import math
+
+CalculatorInput = Tuple[float, float]
+
+class InvalidInputError(Exception):
+    pass
+
+def validate_input(input: CalculatorInput) -> None:
+    a, b = input
+    if not (math.isfinite(a) and math.isfinite(b)):
+        raise InvalidInputError('Inputs must be finite numbers')
+
+class Calculator:
+    def safe_add(self, input: CalculatorInput) -> float:
+        validate_input(input)
+        a, b = input
+        return a + b
+
+    def add(self, a: int, b: int) -> int:
+        return a + b
 `,
   },
 } as const

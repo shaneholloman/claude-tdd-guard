@@ -20,6 +20,7 @@ You are reviewing a Write operation that creates a new file. Determine if this v
    - Check test output for justification
    - Implementation must match test failure type
    - No test output = Likely violation
+   - Exception: Refactor during green — types, constants, or helpers that don't introduce new runtime behavior
 
 3. **Special considerations:**
    - Configuration files: Generally allowed

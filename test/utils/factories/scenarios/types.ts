@@ -27,6 +27,8 @@ export interface TestModifications {
   emptyTestContainer: TestData
   emptyTestContainerWithImports: TestData
   refactoredTests: TestData
+  typesOnly: TestData
+  typesWithBehavior: TestData
 }
 
 // Implementation modification types
@@ -38,6 +40,8 @@ export interface ImplementationModifications {
   methodImplementation: TestData
   overEngineered: TestData
   completeClass: TestData
+  classWithTypes: TestData
+  classWithTypesAndFunction: TestData
 }
 
 // Todo state types
@@ -67,6 +71,7 @@ export interface LanguageScenario {
   language: 'typescript' | 'python'
   testFile: string
   implementationFile: string
+  typesFile: string
   testResults: TestResults
   testModifications: TestModifications
   implementationModifications: ImplementationModifications

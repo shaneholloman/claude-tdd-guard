@@ -159,6 +159,100 @@ describe('Core Validator Scenarios', () => {
           expectDecision(result, 'block')
         })
       })
+
+      describe('Extraction refactor', () => {
+        describe('Write new file', () => {
+          test('should allow writing a types-only file when tests are passing', async () => {
+            const operation = createWriteOperation(
+              lang.typesFile,
+              lang.testModifications.typesOnly.content
+            )
+            const context: Context = {
+              modifications: operation,
+              todo: JSON.stringify(lang.todos.empty.content),
+              test: lang.testResults.passing.content,
+            }
+
+            const result = await validator(context, model)
+            expectDecision(result, undefined)
+          })
+
+          test('should block writing types alongside new behavior', async () => {
+            const operation = createWriteOperation(
+              lang.typesFile,
+              lang.testModifications.typesWithBehavior.content
+            )
+            const context: Context = {
+              modifications: operation,
+              todo: JSON.stringify(lang.todos.empty.content),
+              test: lang.testResults.passing.content,
+            }
+
+            const result = await validator(context, model)
+            expectDecision(result, 'block')
+          })
+        })
+
+        describe('Edit existing file', () => {
+          test('should allow adding types to an existing impl file when tests are passing', async () => {
+            const oldContent =
+              lang.implementationModifications.methodImplementation.content
+            const newContent =
+              lang.implementationModifications.classWithTypes.content
+            const operation = createEditOperation(
+              lang.implementationFile,
+              oldContent,
+              newContent
+            )
+            const context: Context = {
+              modifications: operation,
+              todo: JSON.stringify(lang.todos.empty.content),
+              test: lang.testResults.passing.content,
+            }
+
+            const result = await validator(context, model)
+            expectDecision(result, undefined)
+          })
+
+          test('should block adding types alongside a new function to an existing impl file', async () => {
+            const oldContent =
+              lang.implementationModifications.methodImplementation.content
+            const newContent =
+              lang.implementationModifications.classWithTypesAndFunction.content
+            const operation = createEditOperation(
+              lang.implementationFile,
+              oldContent,
+              newContent
+            )
+            const context: Context = {
+              modifications: operation,
+              todo: JSON.stringify(lang.todos.empty.content),
+              test: lang.testResults.passing.content,
+            }
+
+            const result = await validator(context, model)
+            expectDecision(result, 'block')
+          })
+        })
+
+        describe('Overwrite existing file', () => {
+          test('should allow overwriting an existing impl file to add types when tests are passing', async () => {
+            const operation = createWriteOperation(
+              lang.implementationFile,
+              lang.implementationModifications.classWithTypes.content,
+              lang.implementationModifications.methodImplementation.content
+            )
+            const context: Context = {
+              modifications: operation,
+              todo: JSON.stringify(lang.todos.empty.content),
+              test: lang.testResults.passing.content,
+            }
+
+            const result = await validator(context, model)
+            expectDecision(result, undefined)
+          })
+        })
+      })
     })
   })
 })

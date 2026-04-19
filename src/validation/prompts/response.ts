@@ -24,13 +24,14 @@ When blocking, your reason must:
 - "Multiple test addition violation - adding 2 new tests simultaneously. Write and run only ONE test at a time to maintain TDD discipline."
 - "Over-implementation violation. Test output shows symbol is unresolved but implementation adds both class AND method. Create only an empty class first, then run test again."
 - "Refactoring without passing tests. Test output shows failures. Fix failing tests first, ensure all pass, then refactor."
-- "Premature implementation - implementing without a failing test. Write the test first, run it to see the specific failure, then implement only what's needed to address that failure."
+- "Premature implementation - adding new behavior without a failing test. Write the test first, run it to see the specific failure, then implement only what's needed to address that failure."
 - "No test output captured. Cannot validate TDD compliance without test results. Run tests using standard commands (npm test, pytest) without output filtering or redirection that may prevent the test reporter from capturing results."
 
 #### Example Approval Reasons:
 - "Adding single test to test file - follows TDD red phase"
 - "Minimal implementation addressing specific test failure"
 - "Stubbing impl (signature + minimal body) to surface a clean assertion — reaching Red, not Refactoring"
+- "Refactor during green — types/constants/helpers, no new runtime behavior"
 - "Refactoring with evidence of passing tests"
 
 ### Focus

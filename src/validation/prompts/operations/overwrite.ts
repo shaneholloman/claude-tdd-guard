@@ -17,5 +17,7 @@ Adding ONE **new** test (as counted above) is allowed without a failing test out
 ### Analyzing Implementation File Overwrites
 
 ${MATCH_FAILURE_TYPE}
+**Exception**: Refactor during green — types, constants, or helpers that don't introduce new runtime behavior are allowed.
+
 ## Changes to Review
 `

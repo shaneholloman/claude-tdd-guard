@@ -9,6 +9,7 @@ export const typescript: LanguageScenario = {
   language: 'typescript',
   testFile: 'src/Calculator/Calculator.test.ts',
   implementationFile: 'src/Calculator/Calculator.ts',
+  typesFile: 'src/Calculator/types.ts',
   ...typescriptScenarios,
 }
 
@@ -16,6 +17,7 @@ export const python: LanguageScenario = {
   language: 'python',
   testFile: 'src/calculator/test_calculator.py',
   implementationFile: 'src/calculator/calculator.py',
+  typesFile: 'src/calculator/types.py',
   ...pythonScenarios,
 }
 

@@ -282,6 +282,33 @@ describe('Calculator', () => {
   })
 `,
   },
+  typesOnly: {
+    description: 'types-only module (pure shape types, extraction candidate)',
+    content: `export type CalculatorInput = { a: number; b: number }
+export type CalculatorResult = number
+`,
+  },
+  typesWithBehavior: {
+    description: 'types plus a stateful feature class (clearly new behavior)',
+    content: `export type CalculatorInput = { a: number; b: number }
+
+export class CalculationHistory {
+  private entries: Array<{ op: string; input: CalculatorInput; result: number }> = []
+
+  record(op: string, input: CalculatorInput, result: number): void {
+    this.entries.push({ op, input, result })
+  }
+
+  count(): number {
+    return this.entries.length
+  }
+
+  last(): { op: string; input: CalculatorInput; result: number } | undefined {
+    return this.entries[this.entries.length - 1]
+  }
+}
+`,
+  },
 } as const
 
 // Implementation modifications
@@ -403,6 +430,49 @@ export class Calculator {
       throw new Error('Division by zero');
     }
     return a / b;
+  }
+}
+`,
+  },
+  classWithTypes: {
+    description:
+      'existing class with pure shape types prepended (extraction target)',
+    content: `export type CalculatorInput = { a: number; b: number }
+export type CalculatorResult = number
+
+export class Calculator {
+  add(a: number, b: number): number {
+    return a + b;
+  }
+}
+`,
+  },
+  classWithTypesAndFunction: {
+    description:
+      'existing class plus types, a custom error class, validator, and a new method wired to them',
+    content: `export type CalculatorInput = { a: number; b: number }
+
+export class InvalidInputError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidInputError'
+  }
+}
+
+export function validateInput(input: CalculatorInput): void {
+  if (!Number.isFinite(input.a) || !Number.isFinite(input.b)) {
+    throw new InvalidInputError('Inputs must be finite numbers')
+  }
+}
+
+export class Calculator {
+  safeAdd(input: CalculatorInput): number {
+    validateInput(input)
+    return input.a + input.b
+  }
+
+  add(a: number, b: number): number {
+    return a + b;
   }
 }
 `,
