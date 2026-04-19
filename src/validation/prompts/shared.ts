@@ -11,6 +11,8 @@ export const COUNT_NEW_TESTS = `### How to Count New Tests
    - NOT: Moving an existing test to a different location
    - NOT: Renaming an existing test
    - NOT: Reformatting or refactoring existing tests
+   - NOT: Combining two existing tests into one
+   - NOT: Splitting one existing test into multiple tests that cover the same assertions
 
 3. **Multiple test check:**
    - One new test = Allowed (part of TDD cycle)

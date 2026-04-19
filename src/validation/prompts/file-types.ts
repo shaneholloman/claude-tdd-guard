@@ -8,20 +8,19 @@ export const FILE_TYPES = `## File Type Specific Rules
 
 #### Always Allowed:
 - **Adding ONE new test** - This is ALWAYS allowed regardless of test output (foundation of TDD cycle)
-- Modifying existing tests without adding new ones
+- Modifying, renaming, combining, splitting, or reorganizing existing tests — allowed on their own, and allowed alongside adding at most ONE new test
 - Setting up test infrastructure and utilities
 
 **CRITICAL**: Adding a single test to a test file does NOT require prior test output. Writing the first failing test is the start of the TDD cycle.
 
 #### Violations:
 - Adding multiple new tests simultaneously
-- Refactoring tests without running them first
+- Behavioral changes to existing tests without running them first
 
 #### Refactoring Tests:
-- ONLY allowed when relevant tests are passing
-- Moving test setup to beforeEach: Requires passing tests
-- Extracting test helpers: Requires passing tests
-- Blocked if tests are failing, no test output, or only irrelevant test output
+- Structural changes to EXISTING tests (combine, split, rename, extract setup, extract helpers, move) — allowed regardless of test output; these don't change assertion behavior
+- Behavioral changes to EXISTING tests (what an assertion actually checks) — allowed only when relevant tests are passing
+- These also apply when bundled with adding at most ONE new test
 
 **For test refactoring**: "Relevant tests" are the tests in the file being refactored
 

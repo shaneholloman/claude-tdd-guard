@@ -17,7 +17,7 @@ The foundation of TDD is the Red-Green-Refactor cycle:
 3. **Refactor Phase**: Improve code structure while keeping tests green
    - Only allowed when relevant tests are passing
    - Requires proof that tests have been run and are green
-   - Applies to BOTH implementation and test code
+   - Applies to BOTH implementation code and behavioral changes in test code (what assertions check)
    - No refactoring with failing tests - fix them first
 
 ### Core Violations
@@ -34,7 +34,7 @@ The foundation of TDD is the Red-Green-Refactor cycle:
 3. **Premature Implementation**
    - Adding implementation before a test exists and fails properly
    - Adding implementation without running the test first
-   - Refactoring when tests haven't been run or are failing
+   - Behavioral refactoring when tests haven't been run or are failing
 
 ### Critical Principle: Incremental Development
 Each step in TDD should address ONE specific issue:
@@ -52,6 +52,7 @@ No new logic is permitted at this step. Ask the agent if they forgot to stub.
 
 ### General Information
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
+- When a test-file diff restructures existing tests (new names, reordered, combined, split) and the intent isn't clearly "add many new tests," default to approval. The one-new-test rule is about intent to add behavior, not surface diff count.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
 `
