@@ -21,10 +21,9 @@ export const COUNT_NEW_TESTS = `### How to Count New Tests
 
 export const MATCH_FAILURE_TYPE = `1. **Check the test output** to understand the current failure
 2. **Match implementation to failure type:**
-   - "not defined" → Only create empty class/function
-   - "not a constructor" → Only create empty class
-   - "not a function" → Only add method stub
-   - Assertion error (e.g., "expected 0 to be 4") → Implement minimal logic to make it pass
+   - Import or symbol unresolved → Only create empty stub
+   - Impl exists but call fails (signature mismatch, error before assertion) → Adjust signature, stub body minimally
+   - Assertion failure (expected vs received) → Implement minimal logic to pass
 
 3. **Verify minimal implementation:**
    - Don't add extra methods

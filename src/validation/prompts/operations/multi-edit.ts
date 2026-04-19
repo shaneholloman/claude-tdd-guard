@@ -43,11 +43,11 @@ You are reviewing a MultiEdit operation where multiple edits are being applied t
 ### Example MultiEdit Analysis
 
 **Edit 1**: Adds empty Calculator class
-- Test output: "Calculator is not defined"
+- Test output: \`Calculator\` unresolved (import/symbol)
 - Analysis: Appropriate minimal fix
 
 **Edit 2**: Adds both add() and subtract() methods
-- Test output: "calculator.add is not a function"
+- Test output: impl exists but \`calculator.add()\` call fails
 - Analysis: VIOLATION - Should only add add() method
 
 **Reason**: "Over-implementation in Edit 2. Test only requires add() method but edit adds both add() and subtract(). Implement only the method causing the test failure."

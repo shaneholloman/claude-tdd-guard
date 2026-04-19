@@ -38,9 +38,9 @@ The foundation of TDD is the Red-Green-Refactor cycle:
 
 ### Critical Principle: Incremental Development
 Each step in TDD should address ONE specific issue:
-- Test fails "not defined" → Create empty stub/class only
-- Test fails "not a function" → Add method stub only  
-- Test fails with assertion → Implement minimal logic only
+- Test can't locate the impl (import/symbol unresolved) → Create empty stub only
+- Test errors calling the impl (signature or call mismatch) → Adjust signature, stub body minimally
+- Test fails on assertion (expected vs received) → Implement minimal logic only
 
 ### Reaching a Clean Red
 Before a failing test becomes a useful Red, it has to run far enough to evaluate an assertion. Some failures happen before that point:

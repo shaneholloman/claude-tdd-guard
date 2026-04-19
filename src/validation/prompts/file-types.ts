@@ -30,10 +30,9 @@ export const FILE_TYPES = `## File Type Specific Rules
 
 | Test Failure | Allowed Implementation |
 |-------------|----------------------|
-| "X is not defined" | Create empty class/function stub only |
-| "X is not a constructor" | Create empty class only |
-| "X is not a function" | Add method stub only |
-| Assertion error (e.g., "expected X to be Y") | Implement logic to pass assertion |
+| Import or symbol unresolved | Create empty stub only |
+| Impl exists but call fails (signature mismatch, error before assertion) | Adjust signature, stub body minimally |
+| Assertion failure (expected vs received) | Implement logic to pass assertion |
 | No test output | Nothing - must run test first |
 | Irrelevant test output | Nothing - must run relevant test |
 

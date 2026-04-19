@@ -23,9 +23,9 @@ ${COUNT_NEW_TESTS}
 ${MATCH_FAILURE_TYPE}
 ### Example Analysis
 
-**Scenario**: Test fails with "Calculator is not defined"
-- Allowed: Add \`export class Calculator {}\`
-- Violation: Add \`export class Calculator { add(a, b) { return a + b; } }\`
-- **Reason**: Should only fix "not defined", not implement methods
+**Scenario**: Test can't locate \`Calculator\` (import/symbol unresolved)
+- Allowed: Add empty stub — \`export class Calculator {}\`
+- Violation: Add methods — \`export class Calculator { add(a, b) { return a + b; } }\`
+- **Reason**: Should only stub to resolve the symbol, not implement methods
 
 `

@@ -39,7 +39,7 @@ You are reviewing a Write operation that creates a new file. Determine if this v
 - With output = Verify it matches implementation
 
 **Scenario 3**: Writing full implementation
-- Test shows "not defined"
+- Test output indicates the symbol is unresolved
 - Writing complete class with methods = Violation
 - Should write minimal stub first
 
