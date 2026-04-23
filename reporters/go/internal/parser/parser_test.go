@@ -582,14 +582,10 @@ func TestTruncateTestOutput(t *testing.T) {
 		multiRaceOutput := raceConditionOutput + "\n" + raceConditionOutput
 		result := truncateTestOutput(multiRaceOutput)
 
-		// Should summarize multiple races
-		raceCount := strings.Count(result, "race detected")
-		if raceCount != 1 {
-			t.Errorf("Expected 1 race summary, got %d", raceCount)
-		}
-
-		if !strings.Contains(result, "Multiple race conditions detected") {
-			t.Error("Should indicate multiple races")
+		// Should include the multi-race summary exactly once
+		summaryCount := strings.Count(result, "Multiple race conditions detected")
+		if summaryCount != 1 {
+			t.Errorf("Expected 1 multi-race summary, got %d", summaryCount)
 		}
 	})
 
@@ -767,5 +763,24 @@ func TestContainsGoFileLocationRejectsURLs(t *testing.T) {
 		if containsGoFileLocation(line) {
 			t.Errorf("containsGoFileLocation should not match URL-like line: %q", line)
 		}
+	}
+}
+
+func TestMultiRacePreservesFileLocations(t *testing.T) {
+	// Given: output with multiple race warnings, each reporting a different file:line
+	output := `WARNING: DATA RACE
+Read at 0x00c0000a4000 by goroutine 7:
+    handler.go:42: access from goroutine 7
+race detected during execution of test
+Previous write at 0x00c0000a4000 by goroutine 8:
+    handler.go:58: write from goroutine 8
+race detected during execution of test`
+
+	result := truncateTestOutput(output)
+
+	// Then: at least one of the original file:line locations should be preserved
+	// so the agent can tell where the races happened
+	if !strings.Contains(result, "handler.go:42") && !strings.Contains(result, "handler.go:58") {
+		t.Errorf("expected multi-race output to preserve at least one file:line location, got: %q", result)
 	}
 }

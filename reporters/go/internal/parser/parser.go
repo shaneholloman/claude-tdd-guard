@@ -252,9 +252,19 @@ func truncateTestOutput(output string) string {
 	if strings.Contains(output, "race detected during execution of test") {
 		raceCount := strings.Count(output, "race detected during execution of test")
 
-		// For multiple races, use summary format
+		// For multiple races, use summary format and preserve file locations
 		if raceCount > 1 {
-			return fmt.Sprintf("Multiple race conditions detected - race detected during execution of test (%d races found)", raceCount)
+			summary := fmt.Sprintf("Multiple race conditions detected - race detected during execution of test (%d races found)", raceCount)
+			var locations []string
+			for _, line := range strings.Split(output, "\n") {
+				if containsGoFileLocation(line) {
+					locations = append(locations, strings.TrimSpace(line))
+				}
+			}
+			if len(locations) == 0 {
+				return summary
+			}
+			return summary + "\n" + strings.Join(locations, "\n")
 		}
 
 		// For single race, try to preserve file location
