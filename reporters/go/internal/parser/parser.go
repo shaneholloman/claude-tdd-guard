@@ -340,5 +340,9 @@ func selectLinesForTruncation(lines []string, maxLines int) []string {
 
 // containsGoFileLocation checks if a line contains Go file location info (file.go:line:col or file.go:line)
 func containsGoFileLocation(line string) bool {
+	// Exclude URL-like strings such as http://example.com/foo.go:8080/docs
+	if strings.Contains(line, "://") {
+		return false
+	}
 	return strings.Contains(line, ".go:") && (strings.Count(line, ":") >= 2)
 }

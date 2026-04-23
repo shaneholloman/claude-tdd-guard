@@ -753,3 +753,19 @@ func TestTruncationPreservesOriginalLineOrder(t *testing.T) {
 		t.Errorf("expected truncated output to start with original context lines, not a file:line error (reordering); first line: %q", firstLine)
 	}
 }
+
+func TestContainsGoFileLocationRejectsURLs(t *testing.T) {
+	// Given: lines that contain ".go:" and multiple colons but are URLs,
+	// not Go source file locations
+	urls := []string{
+		"see http://example.com/foo.go:8080/docs for details",
+		"fetching from https://github.com/org/repo.go:443",
+	}
+
+	// Then: containsGoFileLocation should not match them
+	for _, line := range urls {
+		if containsGoFileLocation(line) {
+			t.Errorf("containsGoFileLocation should not match URL-like line: %q", line)
+		}
+	}
+}
