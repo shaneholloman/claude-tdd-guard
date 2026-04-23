@@ -304,35 +304,37 @@ func selectLinesForTruncation(lines []string, maxLines int) []string {
 	if len(lines) <= maxLines {
 		return lines
 	}
-	
-	// Find lines with file location info (file.go:line patterns)
-	fileLocationLines := make([]int, 0)
+
+	// Mark which indices to include: prioritize file location lines first,
+	// then fill remaining slots from the beginning.
+	included := make(map[int]bool)
+	count := 0
+
 	for i, line := range lines {
-		if containsGoFileLocation(line) {
-			fileLocationLines = append(fileLocationLines, i)
-		}
-	}
-	
-	selected := make([]string, 0, maxLines)
-	used := make(map[int]bool)
-	
-	// First, include file location lines (up to maxLines)
-	for _, lineIdx := range fileLocationLines {
-		if len(selected) >= maxLines {
+		if count >= maxLines {
 			break
 		}
-		selected = append(selected, lines[lineIdx])
-		used[lineIdx] = true
-	}
-	
-	// Then fill remaining slots with lines from the beginning
-	for i := 0; i < len(lines) && len(selected) < maxLines; i++ {
-		if !used[i] {
-			selected = append(selected, lines[i])
-			used[i] = true
+		if containsGoFileLocation(line) {
+			included[i] = true
+			count++
 		}
 	}
-	
+
+	for i := 0; i < len(lines) && count < maxLines; i++ {
+		if !included[i] {
+			included[i] = true
+			count++
+		}
+	}
+
+	// Emit selected lines in their original order.
+	selected := make([]string, 0, maxLines)
+	for i := 0; i < len(lines); i++ {
+		if included[i] {
+			selected = append(selected, lines[i])
+		}
+	}
+
 	return selected
 }
 

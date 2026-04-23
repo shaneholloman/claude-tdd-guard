@@ -654,12 +654,13 @@ func TestTruncateTestOutput(t *testing.T) {
 			t.Errorf("Expected 3 lines selected, got %d", len(selected))
 		}
 		
-		// File locations should be prioritized
-		if !strings.Contains(selected[0], "test.go:123") {
-			t.Errorf("Expected first file location to be prioritized, got: %v", selected)
+		// Both file locations should be kept (prioritized over middle non-location lines)
+		joined := strings.Join(selected, "\n")
+		if !strings.Contains(joined, "test.go:123") {
+			t.Errorf("Expected test.go:123 to be kept, got: %v", selected)
 		}
-		if !strings.Contains(selected[1], "another.go:456") {
-			t.Errorf("Expected second file location to be prioritized, got: %v", selected)
+		if !strings.Contains(joined, "another.go:456") {
+			t.Errorf("Expected another.go:456 to be kept, got: %v", selected)
 		}
 	})
 
@@ -715,4 +716,40 @@ func parseAndGetOutput(t *testing.T, input string) string {
 		t.Fatalf("Parse failed: %v", err)
 	}
 	return parser.GetTestOutput("example.com/pkg", "ExampleTest")
+}
+
+func TestTruncationPreservesOriginalLineOrder(t *testing.T) {
+	// Given: long output (>500 chars, >5 lines) with file:line markers
+	// scattered between context lines
+	lines := []string{
+		"line 1: entering function",
+		"line 2: setting up input x=42",
+		"line 3: calling under_test",
+		"    my_test.go:25: assertion failed",
+		"line 5: after first failure",
+		"line 6: cleanup attempted",
+		"    my_test.go:30: second assertion failed",
+		"line 8: final cleanup",
+	}
+	padded := make([]string, len(lines))
+	for i, line := range lines {
+		padded[i] = line + " " + strings.Repeat("x", 80)
+	}
+	output := strings.Join(padded, "\n")
+
+	result := truncateTestOutput(output)
+
+	// Then: file:line markers should appear in original order
+	firstMarker := strings.Index(result, "my_test.go:25")
+	secondMarker := strings.Index(result, "my_test.go:30")
+	if firstMarker > 0 && secondMarker > 0 && firstMarker > secondMarker {
+		t.Errorf("expected my_test.go:25 to appear before my_test.go:30 in original order, but got them reversed; truncated output:\n%s", result)
+	}
+
+	// And: truncation should not reorder lines such that an error appears
+	// before its surrounding context
+	firstLine := strings.Split(result, "\n")[0]
+	if strings.Contains(firstLine, "my_test.go:") && !strings.Contains(firstLine, "line 1") {
+		t.Errorf("expected truncated output to start with original context lines, not a file:line error (reordering); first line: %q", firstLine)
+	}
 }
