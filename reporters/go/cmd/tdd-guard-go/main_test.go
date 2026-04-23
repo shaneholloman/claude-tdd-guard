@@ -149,7 +149,7 @@ func TestProcess(t *testing.T) {
 			}
 
 			outputStr := output.String()
-			
+
 			// Should preserve file location even for race conditions
 			if !strings.Contains(outputStr, "race_test.go:25") {
 				t.Errorf("Expected file:line location for race condition to be preserved for AI parsing, got: %s", outputStr)
@@ -173,7 +173,7 @@ func TestProcess(t *testing.T) {
 			}
 
 			outputStr := output.String()
-			
+
 			// Should preserve file location even when error message is truncated
 			if !strings.Contains(outputStr, "long_test.go:42") {
 				t.Errorf("Expected file:line location to be preserved even in truncated errors for AI parsing, got: %s", outputStr)
@@ -196,7 +196,7 @@ func TestProcess(t *testing.T) {
 			}
 
 			outputStr := output.String()
-			
+
 			// For AI error location parsing, we need:
 			// 1. The FAIL marker with test name and timing
 			if !strings.Contains(outputStr, "--- FAIL: TestSample (0.00s)") {

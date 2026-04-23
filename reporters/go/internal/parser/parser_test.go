@@ -12,7 +12,7 @@ const (
 	passEvent = `{"Action":"pass","Package":"example.com/pkg","Test":"TestAdd"}`
 	failEvent = `{"Action":"fail","Package":"example.com/pkg","Test":"TestFail"}`
 	runEvent  = `{"Action":"run","Package":"example.com/pkg","Test":"TestAdd"}`
-	
+
 	// Race condition test output fixture
 	raceConditionOutput = `=== PAUSE TestProcessSessionStartWorksWithClear
 === CONT  TestProcessSessionStartWorksWithClear
@@ -539,65 +539,65 @@ func TestParser(t *testing.T) {
 func TestTruncateTestOutput(t *testing.T) {
 	t.Run("truncates race condition output", func(t *testing.T) {
 		truncated := truncateTestOutput(raceConditionOutput)
-		
+
 		// Should contain race detection info but not stack traces
 		if !strings.Contains(truncated, "race detected during execution of test") {
 			t.Error("Should preserve race detection message")
 		}
-		
+
 		// Should not contain verbose stack traces
 		if strings.Contains(truncated, "/home/callan/go/pkg/mod/github.com/rs/zerolog") {
 			t.Error("Should not contain stack trace paths")
 		}
-		
+
 		// Should be much shorter
 		if len(truncated) > 200 {
 			t.Errorf("Truncated output too long: %d chars, expected under 200", len(truncated))
 		}
 	})
-	
+
 	t.Run("preserves short output unchanged", func(t *testing.T) {
 		shortOutput := "TestFailed: expected 5, got 3"
 		result := truncateTestOutput(shortOutput)
-		
+
 		if result != shortOutput {
 			t.Errorf("Expected short output unchanged, got %q", result)
 		}
 	})
-	
+
 	t.Run("truncates very long output", func(t *testing.T) {
 		longOutput := strings.Repeat("This is a very long error message. ", 50) // ~1750 chars
 		result := truncateTestOutput(longOutput)
-		
+
 		if len(result) > 600 {
 			t.Errorf("Output not truncated enough: %d chars, expected under 600", len(result))
 		}
-		
+
 		if !strings.Contains(result, "[truncated") {
 			t.Error("Should indicate truncation occurred")
 		}
 	})
-	
+
 	t.Run("handles multiple race conditions", func(t *testing.T) {
 		multiRaceOutput := raceConditionOutput + "\n" + raceConditionOutput
 		result := truncateTestOutput(multiRaceOutput)
-		
+
 		// Should summarize multiple races
 		raceCount := strings.Count(result, "race detected")
 		if raceCount != 1 {
 			t.Errorf("Expected 1 race summary, got %d", raceCount)
 		}
-		
+
 		if !strings.Contains(result, "Multiple race conditions detected") {
 			t.Error("Should indicate multiple races")
 		}
 	})
-	
+
 	t.Run("prioritizes file location when truncating many lines", func(t *testing.T) {
 		// Create output with >500 chars and >5 lines where file location is in line 6
 		lines := []string{
 			strings.Repeat("very long test output line 1 with lots of content to exceed 500 chars ", 3),
-			strings.Repeat("very long test output line 2 with lots of content to exceed 500 chars ", 3), 
+			strings.Repeat("very long test output line 2 with lots of content to exceed 500 chars ", 3),
 			strings.Repeat("very long test output line 3 with lots of content to exceed 500 chars ", 3),
 			strings.Repeat("very long test output line 4 with lots of content to exceed 500 chars ", 3),
 			strings.Repeat("very long test output line 5 with lots of content to exceed 500 chars ", 3),
@@ -607,16 +607,16 @@ func TestTruncateTestOutput(t *testing.T) {
 		}
 		longOutput := strings.Join(lines, "\n")
 		t.Logf("Total length: %d chars", len(longOutput))
-		
+
 		result := truncateTestOutput(longOutput)
 		t.Logf("Truncated output: %q", result)
-		
+
 		// Current implementation takes first 5 lines and truncates - file location may be lost
 		if !strings.Contains(result, "critical_test.go:123") {
 			t.Errorf("File location should be preserved for AI parsing, but was lost in truncation. Got: %q", result)
 		}
 	})
-	
+
 	t.Run("containsGoFileLocation detects file location patterns", func(t *testing.T) {
 		testCases := []struct {
 			line     string
@@ -628,7 +628,7 @@ func TestTruncateTestOutput(t *testing.T) {
 			{"test.go without line number", false},
 			{"some.txt:123: not a go file", false},
 		}
-		
+
 		for _, tc := range testCases {
 			result := containsGoFileLocation(tc.line)
 			if result != tc.expected {
@@ -636,24 +636,24 @@ func TestTruncateTestOutput(t *testing.T) {
 			}
 		}
 	})
-	
+
 	t.Run("selectLinesForTruncation prioritizes file locations", func(t *testing.T) {
 		lines := []string{
 			"line 1",
 			"line 2",
 			"    test.go:123: important error",
-			"line 4", 
+			"line 4",
 			"line 5",
 			"    another.go:456: another error",
 		}
-		
+
 		selected := selectLinesForTruncation(lines, 3)
-		
+
 		// Should include both file location lines plus one regular line
 		if len(selected) != 3 {
 			t.Errorf("Expected 3 lines selected, got %d", len(selected))
 		}
-		
+
 		// Both file locations should be kept (prioritized over middle non-location lines)
 		joined := strings.Join(selected, "\n")
 		if !strings.Contains(joined, "test.go:123") {
@@ -670,14 +670,14 @@ func TestTruncateTestOutput(t *testing.T) {
     race_test.go:25: race detected during execution of test
     Some additional race output
     More race details`
-		
+
 		result := truncateTestOutput(raceOutput)
-		
+
 		// Should preserve the file:line location for AI parsing, not just generic message
 		if !strings.Contains(result, "race_test.go:25") {
 			t.Errorf("Expected race condition to preserve file location for AI parsing, got: %q", result)
 		}
-		
+
 		// Should still indicate it's a race condition
 		if !strings.Contains(result, "race detected during execution of test") {
 			t.Errorf("Expected race condition to preserve race detection message, got: %q", result)

@@ -251,12 +251,12 @@ func truncateTestOutput(output string) string {
 	// Handle race conditions specially - preserve file location for AI parsing
 	if strings.Contains(output, "race detected during execution of test") {
 		raceCount := strings.Count(output, "race detected during execution of test")
-		
+
 		// For multiple races, use summary format
 		if raceCount > 1 {
 			return fmt.Sprintf("Multiple race conditions detected - race detected during execution of test (%d races found)", raceCount)
 		}
-		
+
 		// For single race, try to preserve file location
 		lines := strings.Split(output, "\n")
 		// Try to find first .go:line line mentioning race for AI parsing
@@ -279,20 +279,20 @@ func truncateTestOutput(output string) string {
 		// Last resort - generic message
 		return "race detected during execution of test"
 	}
-	
+
 	// For short output, return unchanged
 	const maxLength = 500
 	if len(output) <= maxLength {
 		return output
 	}
-	
+
 	// For long output, truncate and indicate
 	lines := strings.Split(output, "\n")
 	if len(lines) <= 5 {
 		// Truncate by character count
 		return output[:maxLength-50] + fmt.Sprintf(" [truncated %d chars]", len(output)-maxLength+50)
 	}
-	
+
 	// Take first 5 lines but prioritize lines with file location info for AI parsing
 	selectedLines := selectLinesForTruncation(lines, 5)
 	remainingLines := len(lines) - len(selectedLines)
