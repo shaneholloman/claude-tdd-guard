@@ -83,9 +83,11 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 
 ## Related Projects
 
-[Conduct](https://github.com/nizos/conduct) is a vendor-agnostic policy engine that generalizes this approach across coding agents (Claude Code, Codex, Copilot). It works with any language and test runner, supports parallel agent sessions, and ships rules beyond TDD.
+### [Conduct](https://github.com/nizos/conduct)
 
-TDD Guard's TDD enforcement is dogfooded and well-tested. Conduct's is newer and less proven, but its TDD validator sees recent agent activity for richer context. TDD Guard remains actively maintained.
+A policy engine that generalizes this approach across coding agents — Claude Code, Codex, and Copilot. Works with any language and test runner, supports parallel agent sessions, and ships rules beyond TDD.
+
+TDD Guard's TDD enforcement is dogfooded and well-tested. Conduct's is newer and less proven, but its TDD validator sees recent agent activity for richer validation context. TDD Guard remains actively maintained.
 
 ## Support
 
