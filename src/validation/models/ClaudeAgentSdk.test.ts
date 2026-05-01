@@ -79,8 +79,8 @@ describe('ClaudeAgentSdk', () => {
       expect(getUsedOptions().disallowedTools).toEqual(expectedDisallowedTools)
     })
 
-    test('sets maxThinkingTokens to 0', async () => {
-      expect(getUsedOptions().maxThinkingTokens).toBe(0)
+    test('disables thinking via the non-deprecated thinking option', async () => {
+      expect(getUsedOptions().thinking).toEqual({ type: 'disabled' })
     })
 
     test('uses model version from config', async () => {
@@ -95,13 +95,20 @@ describe('ClaudeAgentSdk', () => {
       expect(getUsedOptions().systemPrompt).toBe(SYSTEM_PROMPT)
     })
 
-    test('sets cwd to config dataDir', async () => {
-      // Prevents hook trigggers and keeps queries out of project history
-      expect(getUsedOptions().cwd).toBe(config.dataDir)
+    test('does not set cwd so isolation comes from settingSources and persistSession instead', async () => {
+      expect(getUsedOptions().cwd).toBeUndefined()
     })
 
     test('sets persistSession to false to keep validation out of session history', async () => {
       expect(getUsedOptions().persistSession).toBe(false)
+    })
+
+    test('sets settingSources to empty so no filesystem settings or CLAUDE.md are loaded', async () => {
+      expect(getUsedOptions().settingSources).toEqual([])
+    })
+
+    test("sets permissionMode to 'dontAsk' so the non-interactive child denies instead of prompting", async () => {
+      expect(getUsedOptions().permissionMode).toBe('dontAsk')
     })
   })
 

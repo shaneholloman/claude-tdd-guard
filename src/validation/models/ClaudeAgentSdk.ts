@@ -45,11 +45,12 @@ export class ClaudeAgentSdk implements IModelClient {
         'Task',
         'TodoWrite',
       ],
-      maxThinkingTokens: 0,
+      thinking: { type: 'disabled' },
       model: this.config.modelVersion,
+      permissionMode: 'dontAsk',
       strictMcpConfig: true,
+      settingSources: [],
       persistSession: false,
-      cwd: this.config.dataDir,
     }
   }
 }
