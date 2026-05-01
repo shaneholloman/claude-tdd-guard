@@ -85,9 +85,11 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 
 ### [Conduct](https://github.com/nizos/conduct)
 
-A policy engine that generalizes this approach across coding agents — Claude Code, Codex, and Copilot. Works with any language and test runner, supports parallel agent sessions, and ships rules beyond TDD.
+A policy engine that generalizes this approach across coding agents (Claude Code, Codex, and Copilot). Works with any language and test runner, supports parallel agent sessions, and ships rules beyond TDD.
 
-TDD Guard's TDD enforcement is dogfooded and well-tested. Conduct's is newer and less proven, but its TDD validator sees recent agent activity for richer validation context. TDD Guard remains actively maintained.
+For new projects, [Conduct](https://github.com/nizos/conduct) is the better starting point. Its TDD validator reads recent agent activity directly, giving richer context for distinguishing refactors from new behavior.
+
+Stay on TDD Guard if you use its lint integration. Conduct doesn't have an equivalent yet. TDD Guard remains actively maintained.
 
 ## Support
 
