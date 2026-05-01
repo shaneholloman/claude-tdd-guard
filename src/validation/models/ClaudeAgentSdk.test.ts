@@ -103,31 +103,6 @@ describe('ClaudeAgentSdk', () => {
     test('sets persistSession to false to keep validation out of session history', async () => {
       expect(getUsedOptions().persistSession).toBe(false)
     })
-
-    test('passes env without CLAUDECODE to prevent nested session rejection', async () => {
-      process.env.CLAUDECODE = '1'
-
-      const freshSetup = setupClient(createSDKResultMessage(), config)
-      await freshSetup.client.ask(prompt)
-
-      expect(freshSetup.getUsedOptions().env).toBeDefined()
-      expect(freshSetup.getUsedOptions().env).not.toHaveProperty('CLAUDECODE')
-    })
-
-    test('preserves other environment variables in env', async () => {
-      process.env.CLAUDECODE = '1'
-      process.env.SOME_OTHER_VAR = 'keep-me'
-
-      const freshSetup = setupClient(createSDKResultMessage(), config)
-      await freshSetup.client.ask(prompt)
-
-      expect(freshSetup.getUsedOptions().env).toHaveProperty(
-        'SOME_OTHER_VAR',
-        'keep-me'
-      )
-
-      delete process.env.SOME_OTHER_VAR
-    })
   })
 
   describe('result handling', () => {

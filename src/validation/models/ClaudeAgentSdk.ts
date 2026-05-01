@@ -50,13 +50,6 @@ export class ClaudeAgentSdk implements IModelClient {
       strictMcpConfig: true,
       persistSession: false,
       cwd: this.config.dataDir,
-      env: this.getCleanEnvironment(),
     }
-  }
-
-  private getCleanEnvironment(): Record<string, string | undefined> {
-    const environment = { ...process.env }
-    delete environment.CLAUDECODE
-    return environment
   }
 }
