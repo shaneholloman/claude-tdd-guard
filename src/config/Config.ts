@@ -41,15 +41,16 @@ export class Config {
   }
 
   private getDataDir(options?: ConfigOptions): string {
-    // Determine the base directory
     const baseDir = options?.projectRoot ?? this.getValidatedClaudeProjectDir()
 
-    // If we have a base directory, construct the full path
     if (baseDir) {
-      return path.join(baseDir, DEFAULT_DATA_DIR)
+      return path.join(stripTrailingClaude(baseDir), DEFAULT_DATA_DIR)
     }
 
-    // Default to relative path
+    const cwd = process.cwd()
+    if (path.basename(cwd) === '.claude') {
+      return path.join(path.dirname(cwd), DEFAULT_DATA_DIR)
+    }
     return DEFAULT_DATA_DIR
   }
 
@@ -152,6 +153,10 @@ export class Config {
 
     return projectDir
   }
+}
+
+function stripTrailingClaude(dir: string): string {
+  return path.basename(dir) === '.claude' ? path.dirname(dir) : dir
 }
 
 function toComparablePath(p: string): string {
