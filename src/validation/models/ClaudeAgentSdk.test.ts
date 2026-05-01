@@ -100,6 +100,10 @@ describe('ClaudeAgentSdk', () => {
       expect(getUsedOptions().cwd).toBe(config.dataDir)
     })
 
+    test('sets persistSession to false to keep validation out of session history', async () => {
+      expect(getUsedOptions().persistSession).toBe(false)
+    })
+
     test('passes env without CLAUDECODE to prevent nested session rejection', async () => {
       process.env.CLAUDECODE = '1'
 

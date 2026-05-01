@@ -48,6 +48,7 @@ export class ClaudeAgentSdk implements IModelClient {
       maxThinkingTokens: 0,
       model: this.config.modelVersion,
       strictMcpConfig: true,
+      persistSession: false,
       cwd: this.config.dataDir,
       env: this.getCleanEnvironment(),
     }
