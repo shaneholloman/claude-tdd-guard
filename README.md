@@ -8,17 +8,11 @@
 
 Automated Test-Driven Development enforcement for Claude Code.
 
-## Overview
+<p align="center">
+  <img src="docs/assets/tdd-guard-demo.gif" alt="TDD Guard blocking TDD violations" width="1200">
+</p>
 
 TDD Guard ensures Claude Code follows Test-Driven Development principles. When your agent tries to skip tests or over-implement, TDD Guard blocks the action and explains what needs to happen instead.
-
-<p align="center">
-  <a href="https://nizar.se/uploads/videos/tdd-guard-demo.mp4">
-    <img src="docs/assets/tdd-guard-demo-screenshot.gif" alt="TDD Guard Demo" width="600">
-  </a>
-  <br>
-  <em>Click to watch TDD Guard in action</em>
-</p>
 
 ## Features
 
