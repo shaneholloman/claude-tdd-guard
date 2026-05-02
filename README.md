@@ -77,11 +77,11 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 
 ## Related Projects
 
-### [Conduct](https://github.com/nizos/conduct)
+### [Probity](https://github.com/nizos/probity)
 
 Enforces TDD and other policies across Claude Code, Codex, and Copilot. Works with any language and test runner. Uses session activity for validation, giving it a fuller picture when distinguishing refactors from new behavior.
 
-For new projects, [Conduct](https://github.com/nizos/conduct) is the better starting point. Stay on TDD Guard if you use its lint integration. Conduct doesn't have an equivalent yet.
+For new projects, [Probity](https://github.com/nizos/probity) is the better starting point. Stay on TDD Guard if you use its lint integration. Probity doesn't have an equivalent yet.
 
 ## Support
 
