@@ -219,6 +219,10 @@ jobs:
         working-directory: reporters/rust
         run: cargo build --release
 
+      - name: Build JUnit5 reporter
+        working-directory: reporters/junit5
+        run: ./gradlew jar --no-daemon
+
       - name: Run reporter tests
         run: npm run test:reporters
 
