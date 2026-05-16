@@ -15,6 +15,7 @@ ARG COMPOSER_VERSION=2.8.10
 ARG GIT_DELTA_VERSION=0.18.2
 ARG ZSH_IN_DOCKER_VERSION=1.2.1
 ARG GO_VERSION=1.24.0
+ARG GOLANGCI_LINT_VERSION=v2.3.1
 
 # Install basic development tools and iptables/ipset
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -155,7 +156,7 @@ ENV GOPATH="/home/node/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 # Install golangci-lint
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/go/bin latest
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/${GOLANGCI_LINT_VERSION}/install.sh | sh -s -- -b /usr/local/go/bin ${GOLANGCI_LINT_VERSION}
 
 # Install Rust
 ENV RUSTUP_HOME=/opt/rust/rustup
