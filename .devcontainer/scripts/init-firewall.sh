@@ -16,6 +16,7 @@
 #   - Packagist: packagist.org, repo.packagist.org, getcomposer.org
 #   - Go: proxy.golang.org, sum.golang.org, go.dev, storage.googleapis.com, honnef.co
 #   - Ruby: rubygems.org
+#   - JVM: services.gradle.org, plugins.gradle.org, repo.maven.apache.org
 #   - Rust: crates.io, static.crates.io, index.crates.io
 # - Claude/Anthropic services: api.anthropic.com, sentry.io, statsig.com
 # - JetBrains plugin marketplace: plugins.jetbrains.com
@@ -120,6 +121,9 @@ for domain in \
     "storage.googleapis.com" \
     "honnef.co" \
     "rubygems.org" \
+    "services.gradle.org" \
+    "plugins.gradle.org" \
+    "repo.maven.apache.org" \
     "crates.io" \
     "static.crates.io" \
     "index.crates.io" \
