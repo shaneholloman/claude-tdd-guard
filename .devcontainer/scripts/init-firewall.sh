@@ -108,7 +108,6 @@ for domain in \
     "registry.npmjs.org" \
     "api.anthropic.com" \
     "sentry.io" \
-    "statsig.anthropic.com" \
     "statsig.com" \
     "pypi.org" \
     "files.pythonhosted.org" \
