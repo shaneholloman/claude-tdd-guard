@@ -81,7 +81,7 @@ reporters/junit5/gradlew -p reporters/junit5 jar --no-daemon || echo "⚠️  JU
 # 10. Install Playwright browsers for Storybook test-runner
 echo ""
 echo "🎭 Installing Playwright browsers for Storybook test-runner..."
-npx playwright install chromium --only-shell
+NODE_OPTIONS="--dns-result-order=ipv4first" npx playwright install chromium --only-shell
 
 echo ""
 echo "✅ Development environment setup complete!"
