@@ -192,4 +192,33 @@ class TestJsonWriterTest {
 
         assertTrue(!json.contains("\"reason\""));
     }
+
+    @Test
+    void serializesStackWhenPresent() {
+        TestResult result = new TestResult(List.of(
+                new TestModule("com.example.MyTest", List.of(
+                        TestCase.failed("test", "com.example.MyTest::test",
+                                List.of(new TestError("boom",
+                                        "com.example.MyTest.test(MyTest.java:42)")))
+                ))
+        ));
+
+        String json = writer.serialize(result);
+
+        assertTrue(json.contains("\"stack\": \"com.example.MyTest.test(MyTest.java:42)\""));
+    }
+
+    @Test
+    void omitsStackWhenNull() {
+        TestResult result = new TestResult(List.of(
+                new TestModule("com.example.MyTest", List.of(
+                        TestCase.failed("test", "com.example.MyTest::test",
+                                List.of(new TestError("boom")))
+                ))
+        ));
+
+        String json = writer.serialize(result);
+
+        assertTrue(!json.contains("\"stack\""));
+    }
 }

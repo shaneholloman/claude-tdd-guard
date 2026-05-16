@@ -137,4 +137,41 @@ class TestResultCollectorTest {
     void reasonIsPassedWhenNoTestsRecorded() {
         assertEquals("passed", collector.build().reason());
     }
+
+    @Test
+    void populatesStackFromFirstUserFrame() {
+        Throwable t = new RuntimeException("boom");
+        t.setStackTrace(new StackTraceElement[] {
+                new StackTraceElement("org.opentest4j.AssertionFailedError", "<init>", "AssertionFailedError.java", 33),
+                new StackTraceElement("org.junit.jupiter.api.AssertionUtils", "fail", "AssertionUtils.java", 39),
+                new StackTraceElement("com.example.MyTest", "shouldFail", "MyTest.java", 12)
+        });
+
+        collector.recordFailed("com.example.MyTest", "shouldFail", t);
+
+        TestCase test = collector.build().testModules().get(0).tests().get(0);
+        assertEquals("com.example.MyTest.shouldFail(MyTest.java:12)", test.errors().get(0).stack());
+    }
+
+    @Test
+    void leavesStackNullWhenAllFramesAreFrameworkInternal() {
+        Throwable t = new RuntimeException("boom");
+        t.setStackTrace(new StackTraceElement[] {
+                new StackTraceElement("org.junit.jupiter.api.AssertionUtils", "fail", "AssertionUtils.java", 39),
+                new StackTraceElement("jdk.internal.reflect.DirectMethodHandleAccessor", "invoke", "DirectMethodHandleAccessor.java", 103)
+        });
+
+        collector.recordFailed("com.example.MyTest", "shouldFail", t);
+
+        TestCase test = collector.build().testModules().get(0).tests().get(0);
+        assertNull(test.errors().get(0).stack());
+    }
+
+    @Test
+    void leavesStackNullWhenThrowableIsNull() {
+        collector.recordFailed("com.example.MyTest", "shouldFail", null);
+
+        TestCase test = collector.build().testModules().get(0).tests().get(0);
+        assertNull(test.errors().get(0).stack());
+    }
 }

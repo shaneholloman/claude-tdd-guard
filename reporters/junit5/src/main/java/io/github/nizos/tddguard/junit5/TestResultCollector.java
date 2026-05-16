@@ -65,6 +65,7 @@ public final class TestResultCollector {
         if (message == null) {
             message = throwable.getClass().getName();
         }
-        return Collections.singletonList(new TestError(message));
+        String stack = StackFilter.firstUserFrame(throwable);
+        return Collections.singletonList(new TestError(message, stack));
     }
 }
