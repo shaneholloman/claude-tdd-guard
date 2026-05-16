@@ -73,7 +73,12 @@ echo ""
 echo "🦀 Building Rust reporter..."
 cargo build --release --manifest-path reporters/rust/Cargo.toml || echo "⚠️  Rust reporter build failed (non-fatal)"
 
-# 9. Install Playwright browsers for Storybook test-runner
+# 9. Build JUnit5 reporter
+echo ""
+echo "☕ Building JUnit5 reporter..."
+reporters/junit5/gradlew -p reporters/junit5 jar --no-daemon || echo "⚠️  JUnit5 reporter build failed (non-fatal)"
+
+# 10. Install Playwright browsers for Storybook test-runner
 echo ""
 echo "🎭 Installing Playwright browsers for Storybook test-runner..."
 npx playwright install chromium --only-shell
