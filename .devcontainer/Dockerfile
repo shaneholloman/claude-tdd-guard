@@ -129,6 +129,15 @@ RUN ldconfig
 # Install RuboCop
 RUN gem install rubocop -v 1.86.0
 
+# Install JDK 17 for the JUnit5 reporter (Gradle toolchain target)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  openjdk-17-jdk-headless \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* \
+  && ln -s /usr/lib/jvm/java-17-openjdk-$(dpkg --print-architecture) /opt/java-17
+
+ENV JAVA_HOME=/opt/java-17
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
 # Install Go
 RUN ARCH=$(dpkg --print-architecture) && \
     case ${ARCH} in \
