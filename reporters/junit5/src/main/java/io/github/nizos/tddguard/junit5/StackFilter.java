@@ -20,6 +20,11 @@ public final class StackFilter {
             "org.opentest4j.",
             "org.gradle.",
             "worker.org.gradle.",
+            "org.assertj.",
+            "org.mockito.",
+            "org.hamcrest.",
+            "org.testng.",
+            "org.springframework.",
             "io.github.nizos.tddguard."
     };
 

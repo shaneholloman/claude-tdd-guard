@@ -99,6 +99,45 @@ class StackFilterTest {
         assertNull(StackFilter.firstUserFrame((Throwable) null));
     }
 
+    @Test
+    void skipsAssertjMockitoHamcrestFrames() {
+        StackTraceElement[] frames = new StackTraceElement[] {
+                user("org.assertj.core.api.AbstractAssert", "isEqualTo", "AbstractAssert.java", 234),
+                user("org.mockito.internal.verification.MockAwareVerificationMode", "verify", "MockAwareVerificationMode.java", 26),
+                user("org.hamcrest.MatcherAssert", "assertThat", "MatcherAssert.java", 18),
+                user("com.example.MyTest", "shouldFail", "MyTest.java", 24)
+        };
+
+        assertEquals(
+                "com.example.MyTest.shouldFail(MyTest.java:24)",
+                StackFilter.firstUserFrame(frames));
+    }
+
+    @Test
+    void skipsTestngFrames() {
+        StackTraceElement[] frames = new StackTraceElement[] {
+                user("org.testng.Assert", "assertEquals", "Assert.java", 87),
+                user("com.example.MyTest", "shouldFail", "MyTest.java", 15)
+        };
+
+        assertEquals(
+                "com.example.MyTest.shouldFail(MyTest.java:15)",
+                StackFilter.firstUserFrame(frames));
+    }
+
+    @Test
+    void skipsSpringFrames() {
+        StackTraceElement[] frames = new StackTraceElement[] {
+                user("org.springframework.test.context.junit.jupiter.SpringExtension", "beforeEach", "SpringExtension.java", 215),
+                user("org.springframework.aop.framework.ReflectiveMethodInvocation", "proceed", "ReflectiveMethodInvocation.java", 186),
+                user("com.example.MyTest", "shouldFail", "MyTest.java", 33)
+        };
+
+        assertEquals(
+                "com.example.MyTest.shouldFail(MyTest.java:33)",
+                StackFilter.firstUserFrame(frames));
+    }
+
     private static StackTraceElement user(String declaringClass, String method, String file, int line) {
         return new StackTraceElement(declaringClass, method, file, line);
     }
