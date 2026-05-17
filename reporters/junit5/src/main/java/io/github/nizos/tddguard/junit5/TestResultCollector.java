@@ -4,6 +4,7 @@ import io.github.nizos.tddguard.junit5.model.TestCase;
 import io.github.nizos.tddguard.junit5.model.TestError;
 import io.github.nizos.tddguard.junit5.model.TestModule;
 import io.github.nizos.tddguard.junit5.model.TestResult;
+import io.github.nizos.tddguard.junit5.model.UnhandledError;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import java.util.Map;
  */
 public final class TestResultCollector {
     private final Map<String, List<TestCase>> moduleMap = new LinkedHashMap<>();
+    private final List<UnhandledError> unhandledErrors = new ArrayList<>();
 
     public void recordPassed(String moduleId, String methodName) {
         add(moduleId, TestCase.passed(methodName, fullName(moduleId, methodName)));
@@ -33,6 +35,19 @@ public final class TestResultCollector {
         add(moduleId, TestCase.skipped(methodName, fullName(moduleId, methodName)));
     }
 
+    public void recordUnhandledError(Throwable throwable) {
+        if (throwable == null) {
+            return;
+        }
+        String name = throwable.getClass().getName();
+        String message = throwable.getMessage();
+        if (message == null) {
+            message = name;
+        }
+        String stack = StackFilter.firstUserFrame(throwable);
+        unhandledErrors.add(new UnhandledError(name, message, stack));
+    }
+
     public TestResult build() {
         List<TestModule> modules = new ArrayList<>();
         boolean anyFailed = false;
@@ -46,7 +61,8 @@ public final class TestResultCollector {
             }
         }
 
-        return new TestResult(modules, anyFailed ? "failed" : "passed");
+        String reason = anyFailed || !unhandledErrors.isEmpty() ? "failed" : "passed";
+        return new TestResult(modules, reason, List.copyOf(unhandledErrors));
     }
 
     private void add(String moduleId, TestCase testCase) {

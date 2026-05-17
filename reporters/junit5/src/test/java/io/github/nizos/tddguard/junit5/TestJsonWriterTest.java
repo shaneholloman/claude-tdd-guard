@@ -4,6 +4,7 @@ import io.github.nizos.tddguard.junit5.model.TestCase;
 import io.github.nizos.tddguard.junit5.model.TestError;
 import io.github.nizos.tddguard.junit5.model.TestModule;
 import io.github.nizos.tddguard.junit5.model.TestResult;
+import io.github.nizos.tddguard.junit5.model.UnhandledError;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -219,6 +220,48 @@ class TestJsonWriterTest {
 
         String json = writer.serialize(result);
 
+        assertTrue(!json.contains("\"stack\""));
+    }
+
+    @Test
+    void serializesUnhandledErrorsWhenPresent() {
+        TestResult result = new TestResult(
+                Collections.emptyList(),
+                "failed",
+                List.of(new UnhandledError(
+                        "java.lang.RuntimeException",
+                        "teardown blew up",
+                        "com.example.MyTest.tearDownAll(MyTest.java:31)"))
+        );
+
+        String json = writer.serialize(result);
+
+        assertTrue(json.contains("\"unhandledErrors\": ["));
+        assertTrue(json.contains("\"name\": \"java.lang.RuntimeException\""));
+        assertTrue(json.contains("\"message\": \"teardown blew up\""));
+        assertTrue(json.contains("\"stack\": \"com.example.MyTest.tearDownAll(MyTest.java:31)\""));
+    }
+
+    @Test
+    void omitsUnhandledErrorsKeyWhenListIsEmpty() {
+        TestResult result = new TestResult(Collections.emptyList());
+
+        String json = writer.serialize(result);
+
+        assertTrue(!json.contains("\"unhandledErrors\""));
+    }
+
+    @Test
+    void omitsUnhandledErrorStackWhenNull() {
+        TestResult result = new TestResult(
+                Collections.emptyList(),
+                "failed",
+                List.of(new UnhandledError("java.lang.RuntimeException", "boom"))
+        );
+
+        String json = writer.serialize(result);
+
+        assertTrue(json.contains("\"unhandledErrors\": ["));
         assertTrue(!json.contains("\"stack\""));
     }
 }

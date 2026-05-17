@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class TddGuardListenerTest {
 
     private static final String DATA_PATH = ".claude/tdd-guard/data/test.json";
@@ -85,7 +86,7 @@ class TddGuardListenerTest {
     }
 
     @Test
-    void ignoresContainerEvents(@TempDir Path tmp) throws IOException {
+    void ignoresSuccessfulContainerEvents(@TempDir Path tmp) throws IOException {
         TddGuardListener listener = createListener(tmp, name -> tmp.toString());
 
         listener.testPlanExecutionStarted(null);
@@ -95,6 +96,23 @@ class TddGuardListenerTest {
 
         String content = Files.readString(tmp.resolve(DATA_PATH));
         assertTrue(content.contains("\"testModules\": []"));
+        assertFalse(content.contains("\"unhandledErrors\""));
+    }
+
+    @Test
+    void capturesFailedContainerAsUnhandledError(@TempDir Path tmp) throws IOException {
+        TddGuardListener listener = createListener(tmp, name -> tmp.toString());
+
+        listener.testPlanExecutionStarted(null);
+        listener.executionFinished(containerIdentifier("com.example.MyTest"),
+                TestExecutionResult.failed(new RuntimeException("@AfterAll exploded")));
+        listener.testPlanExecutionFinished(null);
+
+        String content = Files.readString(tmp.resolve(DATA_PATH));
+        assertTrue(content.contains("\"unhandledErrors\""));
+        assertTrue(content.contains("\"name\": \"java.lang.RuntimeException\""));
+        assertTrue(content.contains("\"message\": \"@AfterAll exploded\""));
+        assertTrue(content.contains("\"reason\": \"failed\""));
     }
 
     @Test
