@@ -87,7 +87,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_passing.py' },
         { name: 'go', expected: 'singlePassing' },
         { name: 'rust', expected: 'single_passing' },
-        { name: 'storybook', expected: 'single-passing.stories' },
+        { name: 'storybook', expected: 'calculatorpassing--primary' },
         { name: 'rspec', expected: 'single_passing_spec.rb' },
         { name: 'minitest', expected: 'single_passing_test.rb' },
         { name: 'junit5', expected: 'SinglePassingTest' },
@@ -107,7 +107,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_failing.py' },
         { name: 'go', expected: 'singleFailing' },
         { name: 'rust', expected: 'single_failing' },
-        { name: 'storybook', expected: 'single-failing.stories' },
+        { name: 'storybook', expected: 'calculatorfailing--primary' },
         { name: 'rspec', expected: 'single_failing_spec.rb' },
         { name: 'minitest', expected: 'single_failing_test.rb' },
         { name: 'junit5', expected: 'SingleFailingTest' },
@@ -127,7 +127,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_import_error.py' },
         { name: 'go', expected: 'missingImport' },
         { name: 'rust', expected: 'compilation' },
-        { name: 'storybook', expected: 'single-import-error.stories' },
+        { name: 'storybook', expected: 'calculatorimporterror--primary' },
         { name: 'rspec', expected: 'single_import_error_spec.rb' },
         { name: 'minitest', expected: 'single_import_error_test.rb' },
         { name: 'junit5', expected: 'SingleImportErrorTest' },
@@ -158,7 +158,7 @@ describe('Reporters', () => {
           name: 'rust',
           expected: 'calculator_tests::should_add_numbers_correctly',
         },
-        { name: 'storybook', expected: 'play-test' },
+        { name: 'storybook', expected: 'Primary' },
         { name: 'rspec', expected: 'should add numbers correctly' },
         { name: 'minitest', expected: 'test_should_add_numbers_correctly' },
         { name: 'junit5', expected: 'testShouldAddNumbersCorrectly' },
@@ -184,7 +184,7 @@ describe('Reporters', () => {
           name: 'rust',
           expected: 'calculator_tests::should_add_numbers_correctly',
         },
-        { name: 'storybook', expected: 'play-test' },
+        { name: 'storybook', expected: 'Primary' },
         { name: 'rspec', expected: 'should add numbers correctly' },
         { name: 'minitest', expected: 'test_should_add_numbers_correctly' },
         { name: 'junit5', expected: 'testShouldAddNumbersCorrectly' },
@@ -210,7 +210,7 @@ describe('Reporters', () => {
         },
         { name: 'go', expected: 'CompilationError' },
         { name: 'rust', expected: 'build' },
-        { name: 'storybook', expected: 'play-test' },
+        { name: 'storybook', expected: 'Primary' },
         {
           name: 'rspec',
           expected: 'LoadError: cannot load such file -- non_existent_module',
@@ -261,6 +261,10 @@ describe('Reporters', () => {
           name: 'rust',
           expected:
             'single_passing::single_passing::calculator_tests::should_add_numbers_correctly',
+        },
+        {
+          name: 'storybook',
+          expected: 'CalculatorPassing > Primary',
         },
         {
           name: 'rspec',
@@ -318,7 +322,7 @@ describe('Reporters', () => {
         },
         {
           name: 'storybook',
-          expected: 'Calculator Primary play-test',
+          expected: 'CalculatorFailing > Primary',
         },
         {
           name: 'rspec',
@@ -362,7 +366,7 @@ describe('Reporters', () => {
         { name: 'pytest', expected: 'test_single_import_error.py' },
         { name: 'go', expected: 'missingImportModule/CompilationError' },
         { name: 'rust', expected: 'compilation::build' },
-        { name: 'storybook', expected: 'Calculator Primary play-test' },
+        { name: 'storybook', expected: 'CalculatorImportError > Primary' },
         {
           name: 'rspec',
           expected:
@@ -398,6 +402,7 @@ describe('Reporters', () => {
         'pytest',
         'go',
         'rust',
+        'storybook',
         'rspec',
         'minitest',
         'junit5',
@@ -493,10 +498,8 @@ describe('Reporters', () => {
             'src/lib.rs:12:9',
           ],
         },
-        {
-          name: 'storybook',
-          expected: ['expected', '5', 'to be', '6'],
-        },
+        // storybook omitted: the test-runner postVisit hook reports pass/fail
+        // state via context.hasFailure but does not expose error messages.
         { name: 'rspec', expected: ['expected: 6', 'got: 5'] },
         { name: 'minitest', expected: ['Expected: 6', 'Actual: 5'] },
         { name: 'junit5', expected: 'expected: <6> but was: <5>' },
@@ -608,13 +611,8 @@ describe('Reporters', () => {
           name: 'rust',
           expected: ['E0432', 'unresolved import', 'non_existent_module'],
         },
-        {
-          name: 'storybook',
-          expected: [
-            'Failed to fetch dynamically imported module',
-            'single-import-error.stories.js',
-          ],
-        },
+        // storybook omitted: the test-runner postVisit hook reports pass/fail
+        // state via context.hasFailure but does not expose error messages.
         {
           name: 'rspec',
           expected: [
