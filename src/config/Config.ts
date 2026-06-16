@@ -9,7 +9,7 @@ const LINT_FILENAME = 'lint.json'
 const CONFIG_FILENAME = 'config.json'
 const INSTRUCTIONS_FILENAME = 'instructions.md'
 
-export const DEFAULT_MODEL_VERSION = 'claude-sonnet-4-0'
+export const DEFAULT_MODEL_VERSION = 'claude-sonnet-4-6'
 export const DEFAULT_CLIENT: ClientType = 'sdk'
 export const DEFAULT_DATA_DIR = path.join('.claude', 'tdd-guard', 'data')
 

@@ -507,6 +507,10 @@ describe('Config', () => {
       expect(config.modelVersion).toBe(DEFAULT_MODEL_VERSION)
     })
 
+    test('default model version is claude-sonnet-4-6', () => {
+      expect(DEFAULT_MODEL_VERSION).toBe('claude-sonnet-4-6')
+    })
+
     test('can be set via options', () => {
       const config = new Config({ modelVersion: 'claude-opus-4-1' })
 
