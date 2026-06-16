@@ -21,7 +21,7 @@ When blocking, your reason must:
 3. **Provide the correct next step** (e.g., "Add only one test first")
 
 #### Example Block Reasons:
-- "Multiple test addition violation - adding 2 new tests simultaneously. Write and run only ONE test at a time to maintain TDD discipline."
+- "Multiple test addition violation - the new content adds 2 tests that were not in the old content. Write and run only ONE new test at a time to maintain TDD discipline."
 - "Over-implementation violation. Test output shows symbol is unresolved but implementation adds both class AND method. Create only an empty class first, then run test again."
 - "Refactoring without passing tests. Test output shows failures. Fix failing tests first, ensure all pass, then refactor."
 - "Premature implementation - adding new behavior without a failing test. Write the test first, run it to see the specific failure, then implement only what's needed to address that failure."
